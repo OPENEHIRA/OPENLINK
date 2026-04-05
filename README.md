@@ -24,7 +24,9 @@ Parsed  →  { "action": "grab", "confidence": 0.95 }
 Output  →  Closing gripper... ✓
 ```
 
-No need to memorise commands — click a suggestion and the robot responds instantly. After each command, suggestions update to show what makes sense to do next.
+The UI feels immediate. Hit Enter (or click a suggestion), and a thinking state appears instantly while the AI processes — a scanning progress bar, animated cursor, and the model name — then the result fades in. No blank waiting, no jarring jumps.
+
+No need to memorise commands. Click a suggestion and the robot responds. After each action, suggestions update to show logical next steps.
 
 ---
 
@@ -33,7 +35,8 @@ No need to memorise commands — click a suggestion and the robot responds insta
 - Accepts natural language commands in plain English
 - Parses them into structured JSON using an AI model (Groq / Llama 3.1)
 - Scores each parsed command with a confidence value so ambiguous input is flagged
-- Falls back to a regex-based parser when the AI is unavailable — the system keeps working offline
+- Falls back to a regex-based parser when the AI is unavailable — keeps working offline
+- Shows a real-time thinking state while the AI processes each command
 - Shows context-aware smart suggestions that update after every command
 - Stores up to 8 recent commands in persistent history with one-click replay
 
@@ -47,14 +50,17 @@ Commands are sent to Llama 3.1 (via Groq's free API) with a structured system pr
 **2. Regex Fallback**
 If the AI is unreachable, the system switches to a regex-based parser. It handles common patterns reliably and marks results with a lower confidence score so you always know which path was taken.
 
-**3. Smart Suggestions**
-Five suggestions are shown below the input at all times. On load, they cover a broad range of actions. After each successful command, they update to reflect logical next steps — if you just grabbed an object, the suggestions shift to lift, move, release, and reposition. A shuffle button cycles in fresh options from the same context pool.
+**3. Thinking State**
+The moment a command is submitted, the output panel switches to a processing view: a scanning accent-colored bar, a blinking cursor, and the model identifier. The Parse button label changes to `…` and disables. Once the response arrives, everything transitions in with staggered card animations. The result never appears abruptly.
 
-**4. Command History**
-Every successful command is saved to `localStorage`. The history row sits between the suggestions and output, so past commands are always within reach. Each entry has two actions: tap the text to fill the input box, or hit the replay button to re-run immediately.
+**4. Smart Suggestions**
+Five suggestions are shown below the input at all times. On load they cover a broad range of actions. After each successful command they update to reflect logical next steps — if you just grabbed an object, suggestions shift to lift, move, release, and reposition. A shuffle button cycles in fresh options.
 
-**5. Simulator**
-The parsed command is passed to a simulator that describes the robot's response in plain text — motor engagement, force applied, confirmation. Ready to be swapped for real hardware output.
+**5. Command History**
+Every successful command is saved to `localStorage`. Each history entry has two actions: tap the text to fill the input, or hit the replay button to re-run immediately.
+
+**6. Simulator**
+The parsed command is passed to a simulator that describes the robot's response in plain text. Ready to be swapped for real hardware output.
 
 ---
 
@@ -86,8 +92,6 @@ openguy/
 └── simulator.py    # Simulates robot arm responses
 ```
 
-Four files. Intentionally minimal. Every part is easy to read and easy to extend.
-
 ---
 
 ## Roadmap
@@ -97,6 +101,7 @@ Four files. Intentionally minimal. Every part is easy to read and easy to extend
 - [x] Web UI (single-file, no setup)
 - [x] Command history with persistent replay
 - [x] Smart context-aware suggestions
+- [x] Real-time thinking / processing state
 - [ ] Serial/USB connection to real hardware
 - [ ] Multi-step command chains ("pick up the block and move it left")
 - [ ] WhatsApp / Telegram bot interface
@@ -111,7 +116,7 @@ Have an idea? [Open an issue](https://github.com/NEHIRAAS/openguy/issues) — su
 
 OpenGuy is beginner-friendly. If you can write Python or basic HTML, you can contribute.
 
-Good places to start: adding new command types to `parser.py`, expanding the suggestion bank in `index.html`, improving the AI system prompt for better accuracy on ambiguous input, writing tests for the `parse()` function, or connecting `simulator.py` to real serial hardware.
+Good places to start: adding command types to `parser.py`, expanding the suggestion bank in `index.html`, improving the AI system prompt, writing tests for `parse()`, or connecting `simulator.py` to real serial hardware.
 
 **How to contribute:**
 
@@ -119,8 +124,6 @@ Good places to start: adding new command types to `parser.py`, expanding the sug
 2. Create a branch: `git checkout -b your-feature`
 3. Make your changes
 4. Open a pull request with a short description
-
-No contribution is too small.
 
 ---
 
