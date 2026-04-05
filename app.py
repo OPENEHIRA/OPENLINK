@@ -12,6 +12,7 @@ from pathlib import Path
 from flask import Flask, render_template_string, request, jsonify
 from parser import parse
 from simulator import RobotSimulator
+from chain_executor import parse_command_chain, execute_chain_step, get_chain_status, reset_chain
 
 # ── Flask Setup ──────────────────────────────────────────────────────────────
 
@@ -166,6 +167,82 @@ def api_health():
         "robot_status": robot.get_status(),
         "timestamp": datetime.now().isoformat(),
     })
+
+
+# ── Chain Execution Routes ───────────────────────────────────────────────────
+
+@app.route("/api/chain/parse", methods=["POST"])
+def api_chain_parse():
+    """Parse a multi-step command chain."""
+    data = request.get_json() or {}
+    command_text = data.get("command", "").strip()
+    api_key = data.get("api_key", os.getenv("ANTHROPIC_API_KEY"))
+
+    if not command_text:
+        return jsonify({"error": "Empty command"}), 400
+
+    try:
+        result = parse_command_chain(command_text, api_key=api_key)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": f"Chain parse error: {str(e)}"}), 500
+
+
+@app.route("/api/chain/status", methods=["GET"])
+def api_chain_status():
+    """Get current chain execution status."""
+    return jsonify(get_chain_status())
+
+
+@app.route("/api/chain/execute", methods=["POST"])
+def api_chain_execute():
+    """Execute a single step in the command chain."""
+    data = request.get_json() or {}
+    
+    action = data.get("action")
+    if not action:
+        return jsonify({"error": "No action specified"}), 400
+
+    try:
+        # Execute the command
+        result = robot.execute(
+            action=action,
+            direction=data.get("direction"),
+            distance_cm=data.get("distance_cm"),
+            angle_deg=data.get("angle_deg"),
+        )
+
+        # Record result and get next step
+        chain_result = execute_chain_step(result)
+        
+        # Add to history
+        history = load_history()
+        history.append({
+            "timestamp": datetime.now().isoformat(),
+            "command": data.get("raw", "unknown"),
+            "parsed": data,
+            "result": result,
+            "is_chain_step": True,
+        })
+        save_history(history)
+
+        return jsonify({
+            "success": True,
+            "result": result,
+            "output": format_sim_result(result),
+            "chain_progress": chain_result["progress"],
+        })
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Execution error: {str(e)}"}), 500
+
+
+@app.route("/api/chain/reset", methods=["POST"])
+def api_chain_reset():
+    """Reset the command chain executor."""
+    reset_chain()
+    return jsonify({"success": True, "message": "Chain reset"})
 
 
 # ── Error Handlers ───────────────────────────────────────────────────────────

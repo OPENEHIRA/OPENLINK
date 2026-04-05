@@ -435,6 +435,10 @@ nav {
 const API_PARSE = '/api/parse';
 const API_EXECUTE = '/api/execute';
 const API_STATUS = '/api/status';
+const API_CHAIN_PARSE = '/api/chain/parse';
+const API_CHAIN_EXECUTE = '/api/chain/execute';
+const API_CHAIN_STATUS = '/api/chain/status';
+const API_CHAIN_RESET = '/api/chain/reset';
 
 // ── Suggestion bank ───────────────────────────────────────────────────────
 // Each key is a last-action context. 'default' shown on load.
@@ -608,6 +612,32 @@ async function callExecute(parsed) {
   return await r.json();
 }
 
+async function callChainParse(text) {
+  const r = await fetch(API_CHAIN_PARSE, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ command: text })
+  });
+  if (!r.ok) {
+    const e = await r.json().catch(() => ({}));
+    throw new Error(e.error || `Error ${r.status}`);
+  }
+  return await r.json();
+}
+
+async function callChainExecute(cmd) {
+  const r = await fetch(API_CHAIN_EXECUTE, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(cmd)
+  });
+  if (!r.ok) {
+    const e = await r.json().catch(() => ({}));
+    throw new Error(e.error || `Error ${r.status}`);
+  }
+  return await r.json();
+}
+
 // ── Render output ─────────────────────────────────────────────────────────
 function renderResult(cmd, execResult) {
   const c = cmd.confidence ?? 0, pct = Math.round(c*100);
@@ -645,6 +675,33 @@ function renderResult(cmd, execResult) {
   </div>`;
 }
 
+function renderChain(chainData) {
+  const total = chainData.total_steps;
+  const cmds = chainData.commands || [];
+  return `<div class="cards">
+    <div class="card">
+      <div class="ch"><span class="clabel">Command Chain</span><span class="pill p-green">${total} STEPS</span></div>
+      <div class="cb">
+        <div class="sim-rows">
+          ${cmds.map((c,i)=>`<div class="sim-row" style="animation-delay:${i*0.08}s">
+            <span class="si">${i+1}</span>
+            <span class="sm"><em>${c.action}</em> ${c.direction ? '→ '+c.direction : ''} ${c.distance_cm ? c.distance_cm + 'cm' : ''}</span>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="cb" style="text-align:center; padding:24px">
+        <button class="cmd-go" onclick="executeChainSequence()" style="width:100%; margin-bottom:8px">Execute Chain</button>
+        <button class="sugg-chip" onclick="location.reload()" style="width:100%; padding:10px; border:1px solid var(--border)">Cancel</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// Global chain data
+let currentChain = null;
+
 // ── Main send ─────────────────────────────────────────────────────────────
 async function go(textOverride) {
   const input = document.getElementById('cmdIn');
@@ -668,6 +725,23 @@ async function go(textOverride) {
     </div>`;
 
   try {
+    // Check if it's a chain (contains AND, THEN, &, commas multiple times)
+    const chainDelimiters = text.toLowerCase().match(/(?:\s+and\s+|\s+then\s+|\s*&\s*|,)/g);
+    const isChain = chainDelimiters && chainDelimiters.length > 0;
+    
+    if (isChain) {
+      // Parse as chain
+      const chainResult = await callChainParse(text);
+      if (chainResult.is_chain && chainResult.total_steps > 1) {
+        currentChain = chainResult;
+        out.innerHTML = renderChain(chainResult);
+        btn.disabled = false;
+        btn.textContent = 'Parse';
+        return;
+      }
+    }
+    
+    // Single command execution
     const cmd = await callParse(text);
     
     if (cmd.action && cmd.action !== 'unknown') {
@@ -690,6 +764,49 @@ async function go(textOverride) {
 
   btn.disabled = false;
   btn.textContent = 'Parse';
+}
+
+async function executeChainSequence() {
+  if (!currentChain) return;
+  
+  const out = document.getElementById('out');
+  out.innerHTML = `
+    <div class="thinking">
+      <span class="thinking-icon">🦾</span>
+      <div class="thinking-body">
+        <span class="thinking-label">Executing Chain</span>
+        <span class="thinking-text">Step 1 of ${currentChain.total_steps}</span>
+        <div class="thinking-bar"><div class="thinking-fill"></div></div>
+      </div>
+    </div>`;
+
+  try {
+    for (let i = 0; i < currentChain.commands.length; i++) {
+      const cmd = currentChain.commands[i];
+      const result = await callChainExecute(cmd);
+      
+      // Update progress
+      const progress = result.chain_progress;
+      out.innerHTML = `
+        <div class="thinking">
+          <span class="thinking-icon">🦾</span>
+          <div class="thinking-body">
+            <span class="thinking-label">Chain Progress</span>
+            <span class="thinking-text">Step ${i+1} of ${currentChain.total_steps}</span>
+            <div class="thinking-bar"><div class="thinking-fill" style="width:${progress.percentage}%"></div></div>
+          </div>
+        </div>`;
+      
+      // Show command result
+      await new Promise(resolve => setTimeout(resolve, 600));
+      
+      out.innerHTML += renderResult(cmd, result);
+    }
+    
+    currentChain = null;
+  } catch(e) {
+    out.innerHTML = `<div class="err-box"><span>⚠</span><span>${e.message}</span></div>`;
+  }
 }
 
 // ── History ───────────────────────────────────────────────────────────────
