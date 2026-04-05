@@ -431,12 +431,10 @@ nav {
 </div>
 
 <script>
-const GROQ = 'https://api.groq.com/openai/v1/chat/completions';
-const MDL  = 'llama-3.1-8b-instant';
-const SYS  = `You are the command parser for a robot arm called OpenGuy.
-Return ONLY a raw JSON object — no markdown, no explanation, no backticks.
-Schema: { "action":"move"|"rotate"|"grab"|"release"|"stop"|"unknown", "direction":"forward"|"backward"|"left"|"right"|"up"|"down"|null, "distance_cm":number|null, "angle_deg":number|null, "confidence":number 0-1, "raw":string }
-Estimates: "a bit"=5cm/15°, "slightly"=3cm/10°, "far"=30cm/90°. Never return anything except the JSON.`;
+// Flask API Endpoints
+const API_PARSE = '/api/parse';
+const API_EXECUTE = '/api/execute';
+const API_STATUS = '/api/status';
 
 // ── Suggestion bank ───────────────────────────────────────────────────────
 // Each key is a last-action context. 'default' shown on load.
@@ -576,46 +574,52 @@ function colorJson(o) {
     .replace(/:\s*(null)/g,     ': <span class="jnu">null</span>');
 }
 
-function sim(cmd) {
-  const { action:a, direction:d='forward', distance_cm:dc, angle_deg:ad } = cmd;
-  if (a==='move')    return [{i:'🔄',m:`Computing trajectory — <em>${d}</em>, <em>${dc??5} cm</em>`},{i:'⚙️',m:`Motor controllers engaged`},{i:'✅',m:`Arm moved <em>${d}</em> <em>${dc??5} cm</em>`}];
-  if (a==='rotate')  return [{i:'🔄',m:`Calculating rotation — <em>${d}</em>, <em>${ad??15}°</em>`},{i:'⚙️',m:`Servo drive engaged`},{i:'✅',m:`Rotated <em>${d}</em> <em>${ad??15}°</em>`}];
-  if (a==='grab')    return [{i:'🔄',m:`Grip sequence initiated`},{i:'⚙️',m:`Force applied — 40%`},{i:'✅',m:`Object gripped`}];
-  if (a==='release') return [{i:'🔄',m:`Release sequence initiated`},{i:'✅',m:`Gripper opened`}];
-  if (a==='stop')    return [{i:'🛑',m:`E-stop broadcast`},{i:'✅',m:`All actuators halted`}];
-  return [{i:'❌',m:`Command not recognised`}];
-}
-
 function confBadge(c) {
   if (c>=0.8) return `<span class="pill p-green">HIGH</span>`;
   if (c>=0.5) return `<span class="pill p-cyan">MED</span>`;
   return `<span class="pill p-dim">LOW</span>`;
 }
 
-// ── Groq API ──────────────────────────────────────────────────────────────
-async function callGroq(text) {
+// ── Flask API ──────────────────────────────────────────────────────────────
+async function callParse(text) {
   const key = document.getElementById('apiField').value.trim() || apiKey;
-  if (!key) throw new Error('Enter your Groq API key (top-right) to continue.');
-  const r = await fetch(GROQ, {
-    method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':`Bearer ${key}`},
-    body: JSON.stringify({ model:MDL, messages:[{role:'system',content:SYS},{role:'user',content:text}], max_tokens:256, temperature:0.1 })
+  const r = await fetch(API_PARSE, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ command: text, api_key: key })
   });
-  if (!r.ok) { const e=await r.json().catch(()=>({})); throw new Error(e.error?.message||`Error ${r.status}`); }
-  const j = await r.json();
-  return JSON.parse(j.choices[0].message.content.trim().replace(/```json|```/g,'').trim());
+  if (!r.ok) {
+    const e = await r.json().catch(() => ({}));
+    throw new Error(e.error || `Error ${r.status}`);
+  }
+  return await r.json();
+}
+
+async function callExecute(parsed) {
+  const r = await fetch(API_EXECUTE, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(parsed)
+  });
+  if (!r.ok) {
+    const e = await r.json().catch(() => ({}));
+    throw new Error(e.error || `Error ${r.status}`);
+  }
+  return await r.json();
 }
 
 // ── Render output ─────────────────────────────────────────────────────────
-function renderResult(cmd) {
-  const c = cmd.confidence ?? 0, pct = Math.round(c*100), sl = sim(cmd);
+function renderResult(cmd, execResult) {
+  const c = cmd.confidence ?? 0, pct = Math.round(c*100);
+  const lines = execResult?.output || [];
+  
   return `<div class="cards">
     <div class="card" style="animation-delay:0s">
       <div class="ch"><span class="clabel">Parsed command</span>${confBadge(c)}</div>
       <div class="cb"><div class="jv">${colorJson(cmd)}</div></div>
     </div>
     <div class="card" style="animation-delay:.07s">
-      <div class="ch"><span class="clabel">Confidence</span><span class="pill p-dim">${MDL.split('-').slice(0,3).join('-')}</span></div>
+      <div class="ch"><span class="clabel">Confidence</span><span class="pill p-dim">CLAUDE</span></div>
       <div class="cb">
         <div class="conf-wrap">
           <div class="conf-bar-row">
@@ -634,7 +638,7 @@ function renderResult(cmd) {
       <div class="ch"><span class="clabel">Robot response</span><span class="pill p-cyan">SIMULATOR</span></div>
       <div class="cb">
         <div class="sim-rows">
-          ${sl.map(l=>`<div class="sim-row"><span class="si">${l.i}</span><span class="sm">${l.m}</span></div>`).join('')}
+          ${lines.map((l,i)=>`<div class="sim-row" style="animation-delay:${i*0.08}s"><span class="si">✓</span><span class="sm">${l}</span></div>`).join('')}
         </div>
       </div>
     </div>
@@ -658,23 +662,27 @@ async function go(textOverride) {
       <span class="thinking-icon">🦾</span>
       <div class="thinking-body">
         <span class="thinking-label">Processing</span>
-        <span class="thinking-text">Parsing command via Llama 3.1</span>
+        <span class="thinking-text">Parsing command via Claude</span>
         <div class="thinking-bar"><div class="thinking-fill"></div></div>
       </div>
     </div>`;
 
   try {
-    const cmd = await callGroq(text);
-    out.innerHTML = renderResult(cmd);
-    requestAnimationFrame(() => setTimeout(() => {
-      const f = document.getElementById('cFill');
-      if (f) f.style.width = `${Math.round((cmd.confidence??0)*100)}%`;
-    }, 60));
-
+    const cmd = await callParse(text);
+    
     if (cmd.action && cmd.action !== 'unknown') {
+      const execResult = await callExecute(cmd);
+      out.innerHTML = renderResult(cmd, execResult);
+      
+      requestAnimationFrame(() => setTimeout(() => {
+        const f = document.getElementById('cFill');
+        if (f) f.style.width = `${Math.round((cmd.confidence??0)*100)}%`;
+      }, 60));
+      
       addToHist({ text, action: cmd.action, pct: Math.round((cmd.confidence??0)*100) });
-      // Rotate suggestions to match the new context
       renderSuggestions(cmd.action);
+    } else {
+      out.innerHTML = `<div class="err-box"><span>⚠</span><span>Could not parse command. Try being more specific.</span></div>`;
     }
   } catch(e) {
     out.innerHTML = `<div class="err-box"><span>⚠</span><span>${e.message}</span></div>`;
@@ -703,14 +711,13 @@ function clearHist() {
   renderHist();
 }
 
-
 function renderHist() {
   const section = document.getElementById('histSection');
   const chips   = document.getElementById('histChips');
   if (!hist.length) { section.style.display = 'none'; return; }
   section.style.display = 'block';
   chips.innerHTML = hist.map((h, i) => {
-    const safe = h.text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    const safe    = h.text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
     return `<div class="hist-chip" style="animation-delay:${i * 0.04}s">
       <span class="hist-fill" onclick="fill('${safe}')" title="Fill input">${h.text}</span>
       <div class="hist-div"></div>

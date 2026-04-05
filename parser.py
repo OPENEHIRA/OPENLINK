@@ -1,18 +1,20 @@
 """
-parser.py — AI-powered natural language parser for EchoArm
+parser.py — AI-powered natural language parser for OpenGuy.
 Uses Claude (via Anthropic API) to convert flexible natural language
 into structured robot commands. Falls back to regex if API is unavailable.
 """
 
 import json
 import re
+import os
 import urllib.request
 import urllib.error
+from typing import Optional, Dict, Any
 
 
 # ── Regex fallback (original MVP logic) ─────────────────────────────────────
 
-def _regex_parse(text):
+def _regex_parse(text: str) -> Dict[str, Any]:
     """Original regex parser. Used when AI is unavailable."""
     text = text.lower().strip()
 
@@ -82,7 +84,7 @@ Output: {"action":"grab","direction":null,"distance_cm":null,"angle_deg":null,"c
 """
 
 
-def _ai_parse(text, api_key=None):
+def _ai_parse(text: str, api_key: Optional[str] = None) -> Optional[Dict[str, Any]]:
     """
     Calls Claude (Haiku, for speed) to parse the command.
     Returns a parsed dict, or None if the call fails.
@@ -122,13 +124,17 @@ def _ai_parse(text, api_key=None):
 
 # ── Public interface ─────────────────────────────────────────────────────────
 
-def parse(text, api_key=None, use_ai=True):
+def parse(
+    text: str, 
+    api_key: Optional[str] = None, 
+    use_ai: bool = True
+) -> Dict[str, Any]:
     """
     Parse a natural language robot command into a structured dict.
 
     Args:
         text     : The user's input string.
-        api_key  : Optional Anthropic API key. Not needed inside claude.ai.
+        api_key  : Optional Anthropic API key. Falls back to ANTHROPIC_API_KEY env var.
         use_ai   : Set False to force regex-only mode (offline testing).
 
     Returns a dict with keys:
@@ -136,8 +142,17 @@ def parse(text, api_key=None, use_ai=True):
     """
     text = text.strip()
     if not text:
-        return {"action": None, "direction": None, "distance_cm": None,
-                "angle_deg": None, "confidence": 0.0, "raw": ""}
+        return {
+            "action": None,
+            "direction": None,
+            "distance_cm": None,
+            "angle_deg": None,
+            "confidence": 0.0,
+            "raw": ""
+        }
+
+    # Try API key from param, then environment
+    api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
 
     if use_ai:
         result = _ai_parse(text, api_key=api_key)
