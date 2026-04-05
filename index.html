@@ -652,7 +652,7 @@ function renderResult(cmd, execResult) {
     <div class="card" style="animation-delay:0s">
       <div class="ch"><span class="clabel">Workspace</span><span class="pill p-cyan">2D VIEW</span></div>
       <div class="cb" style="padding:0">
-        <img src="/api/visualize?t=${timestamp}" style="width:100%; height:auto; display:block; border-radius:8px"/>
+        <object type="image/svg+xml" data="/api/visualize?t=${timestamp}" style="width:100%; height:auto; display:block; border-radius:8px; min-height:200px;"></object>
       </div>
     </div>
     <div class="card" style="animation-delay:.05s">
