@@ -646,12 +646,13 @@ async function callChainExecute(cmd) {
 function renderResult(cmd, execResult) {
   const c = cmd.confidence ?? 0, pct = Math.round(c*100);
   const lines = execResult?.output || [];
+  const timestamp = Date.now(); // Cache-busting timestamp
   
   return `<div class="cards">
     <div class="card" style="animation-delay:0s">
       <div class="ch"><span class="clabel">Workspace</span><span class="pill p-cyan">2D VIEW</span></div>
       <div class="cb" style="padding:0">
-        <img src="/api/visualize" style="width:100%; height:auto; display:block; border-radius:8px"/>
+        <img src="/api/visualize?t=${timestamp}" style="width:100%; height:auto; display:block; border-radius:8px"/>
       </div>
     </div>
     <div class="card" style="animation-delay:.05s">
