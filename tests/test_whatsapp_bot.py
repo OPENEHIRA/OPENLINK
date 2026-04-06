@@ -6,6 +6,7 @@ import pytest
 import os
 import sys
 import json
+import shutil
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -23,7 +24,19 @@ class MockWhatsAppBot(OpenGuyWhatsAppBot):
         self.executor = None
         self.user_sessions = {}
         
-        # Import executor here to avoid circular imports
+        # Import managers and exceptions
+        from notes_manager import NoteManager
+        self.notes = NoteManager(notes_dir="test_robot_notes")
+        
+        # Rate limiting settings
+        self.rate_limit = (10, 60)
+        
+        # Safety settings
+        self.max_distance_cm = 200
+        self.max_angle_deg = 360
+        self.require_confirmation = False
+        
+        # Create executor
         from hybrid_sim import HybridExecutor
         self.executor = HybridExecutor(try_hardware=False)
         
@@ -54,7 +67,11 @@ class TestWhatsAppBot:
     @pytest.fixture
     def bot(self):
         """Create mock bot for testing."""
-        return MockWhatsAppBot()
+        bot = MockWhatsAppBot()
+        yield bot
+        # Cleanup test notes directory
+        if os.path.exists("test_robot_notes"):
+            shutil.rmtree("test_robot_notes")
     
     def test_bot_initialization(self, bot):
         """Bot should initialize correctly."""
