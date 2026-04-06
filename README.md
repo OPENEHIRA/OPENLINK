@@ -17,6 +17,7 @@ OpenGuy converts natural language commands into structured robot actions — no 
 - **Voice Input**: Browser-native voice commands via Web Speech API
 - **Real Hardware Integration**: USB/Serial with auto-detection
 - **Telegram Bot**: Chat interface for robot control
+- **WhatsApp Bot**: Twilio-powered WhatsApp integration for robot control
 - **Type-Safe Code**: Full type hints across all modules
 - **Better Error Handling**: Comprehensive input validation
 
@@ -180,6 +181,53 @@ Bot: 🤖 Robot Status
 For detailed Telegram setup and commands, see [TELEGRAM.md](TELEGRAM.md)
 
 ---
+
+## WhatsApp Bot Interface
+
+Control your robot directly from WhatsApp using Twilio integration. Reach your robot from the most popular messaging app with natural language commands.
+
+### Quick Start
+```bash
+# Set your Twilio credentials
+export TWILIO_ACCOUNT_SID="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+export TWILIO_AUTH_TOKEN="your_auth_token_here"
+export TWILIO_WHATSAPP_NUMBER="whatsapp:+1415xxx1234"
+
+# Start Flask server with webhook
+python app.py
+
+# Chat with your bot on WhatsApp!
+```
+
+### Features
+- 💬 WhatsApp chat interface via Twilio
+- 🤖 Hardware auto-detection
+- 📊 Real-time status and feedback
+- 🔗 Multi-step command chains
+- 👥 Multi-user session support
+
+### Example Session
+```
+User: hello
+Bot: 🤖 Welcome to OpenGuy!
+     I can control robot arms using natural language.
+
+User: move forward, rotate right, grab
+Bot: 🟢 Confidence: 88%
+     Step 1/3 ✓ Moved forward 10cm
+     Step 2/3 ✓ Rotated right 45°
+     Step 3/3 ✓ Gripper CLOSED
+
+User: /status
+Bot: 🤖 Robot Status
+     Mode: 🟡 SIMULATOR
+     Position: (10.0, 0.0)
+     Gripper: Closed
+```
+
+For detailed WhatsApp setup and commands, see [WHATSAPP.md](WHATSAPP.md)
+
+---
 ```bash
 # Install dependencies
 pip install -r requirements.txt
@@ -248,7 +296,7 @@ OpenGuy/
 - [x] PyBullet 3D physics simulation
 - [x] Real hardware integration (USB/Serial)
 - [x] Telegram bot interface
-- [ ] WhatsApp bot integration
+- [x] WhatsApp bot integration
 - [ ] Mobile app (React Native)
 - [ ] Cloud deployment
 - [ ] Advanced analytics dashboard
