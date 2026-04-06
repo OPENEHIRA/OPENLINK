@@ -297,8 +297,9 @@ OpenGuy/
 - [x] Real hardware integration (USB/Serial)
 - [x] Telegram bot interface
 - [x] WhatsApp bot integration
-- [ ] Mobile app (React Native)
-- [ ] Cloud deployment
+- [x] **Robot learning & autonomous adaptation**
+- [x] **Mobile app (React Native)** ✨ NEW
+- [x] **Cloud deployment (Heroku/AWS)** ✨ NEW
 - [ ] Advanced analytics dashboard
 
 ---
@@ -395,6 +396,114 @@ Response:
 
 ---
 
+## 📱 Mobile App (React Native)
+
+Control your robot from anywhere with the OpenGuy mobile app.
+
+### Features
+- 🎤 Voice control for natural language commands
+- 📊 Real-time robot status and position tracking
+- 🧠 View robot's learned strategies and success rates
+- 📜 Command history with replay
+- 🔄 Switch between WhatsApp, Telegram, or direct API
+- 💫 Beautiful native interface for iOS and Android
+
+### Quick Start
+```bash
+cd mobile
+npm install                    # Install dependencies
+npm run ios                   # Run on iOS simulator
+# or
+npm run android              # Run on Android emulator
+```
+
+### Build for Production
+```bash
+# iOS (macOS required)
+npm run build:ios
+# or
+# Android
+npm run build:android
+```
+
+For detailed setup, see [MOBILE_SETUP.md](MOBILE_SETUP.md)
+
+---
+
+## 🚀 Cloud Deployment
+
+Deploy OpenGuy to production with Heroku or AWS.
+
+### Quick Deploy to Heroku (⚡ Fastest)
+```bash
+heroku create openguy-robot
+heroku config:set ROBOT_MODE=simulator
+git push heroku main
+heroku open
+```
+
+Your app is live! Visit: `https://openguy-robot.herokuapp.com`
+
+### AWS Deployment
+```bash
+# Option 1: Elastic Beanstalk (easiest)
+eb create openguy-env
+eb open
+
+# Option 2: ECS with Docker (most scalable)
+aws ecr create-repository --repository-name openguy
+docker build -t openguy .
+docker tag openguy:latest YOUR_ACCOUNT.dkr.ecr.us-east-1.amazonaws.com/openguy:latest
+docker push YOUR_ACCOUNT.dkr.ecr.us-east-1.amazonaws.com/openguy:latest
+```
+
+### Features
+- ✅ Auto-scaling based on demand
+- ✅ SSL/HTTPS included
+- ✅ Health checks and monitoring
+- ✅ Docker containerization
+- ✅ CI/CD ready
+- ✅ Persistent storage for learning data
+
+For detailed deployment guides, see [DEPLOYMENT.md](DEPLOYMENT.md)
+
+---
+
+## 🧠 Robot Learning System
+
+OpenGuy includes an intelligent learning system that enables robots to improve over time.
+
+### How It Works
+```
+Command 1: "move forward 50cm" → SUCCESS ✓
+Command 2: "move forward 50cm" → SUCCESS ✓
+Command 3: "move forward 50cm" → COLLISION ✗
+
+Robot learns: "50cm is risky, use smaller steps"
+
+Command 4: "move forward 50cm" → AUTO-ADJUSTED to 2x25cm steps → SUCCESS ✓
+```
+
+### Features
+- 📊 Tracks success/failure patterns
+- 🔄 Auto-adjusts movement parameters
+- 💾 Persists learned models to disk
+- 📈 Generates learning reports
+- 🎯 Predicts optimal execution strategies
+
+### Access Learning Data
+```bash
+# Via Mobile App
+User: /learn
+Bot: 📚 Robot Learning Report
+     Success Rate: 85%
+     Learned Strategies: 7
+```
+
+For details, see [ROBOT_LEARNING.md](ROBOT_LEARNING.md)
+
+---
+
 ## Contributing
 
 OpenGuy is beginner-friendly. Pick any roadmap item and submit a PR!
@@ -404,8 +513,8 @@ OpenGuy is beginner-friendly. Pick any roadmap item and submit a PR!
 - Improve the AI system prompt
 - Create tests in `tests/`
 - Add hardware drivers
-- Build the mobile app
-- Deploy to cloud
+- Enhance the mobile app
+- Improve cloud deployment
 
 **How to contribute:**
 1. Fork the repo
