@@ -55,13 +55,13 @@ def format_sim_result(result: Dict[str, str]) -> list[str]:
     """Convert simulator result to display-friendly lines."""
     lines = []
     if "movement" in result:
-        lines.append(f"🚀 {result['movement']}")
+        lines.append(f"[MOVE] {result['movement']}")
     if "rotation" in result:
-        lines.append(f"🔄 {result['rotation']}")
+        lines.append(f"[ROTATE] {result['rotation']}")
     if "gripper" in result:
-        lines.append(f"✋ {result['gripper']}")
+        lines.append(f"[GRIP] {result['gripper']}")
     if "status" in result:
-        lines.append(f"📍 {result['status']}")
+        lines.append(f"[STATUS] {result['status']}")
     return lines
 
 
@@ -278,22 +278,23 @@ def internal_error(error):
 
 if __name__ == "__main__":
     print("=" * 50)
-    print("  OpenGuy — Robot Control Interface")
+    print("  OpenGuy - Robot Control Interface")
     print("=" * 50)
-    print("\n✓ Starting Flask server...")
-    print("✓ Open http://localhost:5000 in your browser")
-    print("✓ API docs: http://localhost:5000/api/health\n")
+    print("\n[OK] Starting Flask server...")
+    print("[OK] Open http://localhost:5000 in your browser")
+    print("[OK] API docs: http://localhost:5000/api/health\n")
 
     # Setup Telegram bot webhook if token is provided
     telegram_token = os.getenv("TELEGRAM_BOT_TOKEN")
     if telegram_token:
         try:
+            from telegram_webhook import setup_telegram_webhook
             setup_telegram_webhook(app, robot)
-            print("✓ Telegram bot enabled")
+            print("[OK] Telegram bot enabled")
         except Exception as e:
-            print(f"⚠ Telegram bot setup failed: {e}")
+            print(f"[WARN] Telegram bot setup failed: {e}")
     else:
-        print("ℹ Set TELEGRAM_BOT_TOKEN env var to enable Telegram bot")
+        print("[INFO] Set TELEGRAM_BOT_TOKEN env var to enable Telegram bot")
     
     # Setup WhatsApp bot webhook if Twilio credentials provided
     twilio_creds = [
@@ -303,11 +304,12 @@ if __name__ == "__main__":
     ]
     if all(twilio_creds):
         try:
+            from whatsapp_webhook import setup_whatsapp_webhook
             setup_whatsapp_webhook(app, robot)
-            print("✓ WhatsApp bot enabled")
+            print("[OK] WhatsApp bot enabled")
         except Exception as e:
-            print(f"⚠ WhatsApp bot setup failed: {e}")
+            print(f"[WARN] WhatsApp bot setup failed: {e}")
     else:
-        print("ℹ Set TWILIO_* env vars to enable WhatsApp bot")
+        print("[INFO] Set TWILIO_* env vars to enable WhatsApp bot")
 
     app.run(debug=True, host="0.0.0.0", port=5000)
