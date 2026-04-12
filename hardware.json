@@ -1,0 +1,19 @@
+{
+  "backend": "simulator",
+
+  "ros": {
+    "host": "localhost",
+    "port": 9090,
+    "command_topic": "/openguy/command",
+    "status_topic": "/openguy/status"
+  },
+
+  "iot": {
+    "protocol": "serial",
+    "port": "COM3",
+    "baud": 115200,
+    "mqtt_host": "localhost",
+    "mqtt_port": 1883,
+    "mqtt_topic": "openguy/command"
+  }
+}

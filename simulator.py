@@ -4,9 +4,10 @@ Tracks position, orientation, and gripper state.
 """
 
 from typing import Optional, Dict, Any
+from hardware.base import HardwareBackend
 
 
-class RobotSimulator:
+class RobotSimulator(HardwareBackend):
     """Simulates a 2D robot arm with position, rotation, and gripper control."""
     
     # Workspace boundaries (in cm)
@@ -159,3 +160,30 @@ class RobotSimulator:
     def _status(self):
         """Legacy method for CLI output."""
         print(f"[Robot] {self._get_status_str()}\n")
+
+    # ── HardwareBackend contract ──────────────────────────────────────────────
+
+    def connect(self) -> bool:
+        """Simulator needs no connection — always ready."""
+        print("[Simulator] Ready (in-memory simulation)")
+        return True
+
+    def disconnect(self) -> None:
+        """Nothing to close."""
+        pass
+
+    def is_connected(self) -> bool:
+        return True
+
+    def reset(self) -> None:
+        """Reset to initial state."""
+        self.x = 0.0
+        self.y = 0.0
+        self.facing = 0.0
+        self.gripper_open = True
+        self.command_count = 0
+        print("[Simulator] Reset to initial state")
+
+    @property
+    def name(self) -> str:
+        return "simulator"
