@@ -1,658 +1,1152 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>OpenGuy</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>OpenGuy</title>
 
-<!-- Favicon -->
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230c0c0e'/><text y='23' x='4' font-size='20'>🦾</text></svg>"/>
+  <!-- Favicon -->
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230c0c0e'/><text y='23' x='4' font-size='20'>🦾</text></svg>" />
 
-<!-- Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <!-- Fonts -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&family=DM+Mono:wght@300;400;500&display=swap"
+    rel="stylesheet" />
 
-<style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-:root {
-  --bg:          #0c0c0e;
-  --surface:     #131316;
-  --surface-2:   #18181d;
-  --border:      rgba(255,255,255,0.055);
-  --border-md:   rgba(255,255,255,0.09);
-  --border-hi:   rgba(255,255,255,0.15);
-  --text:        #ededf0;
-  --text-2:      rgba(237,237,240,0.48);
-  --text-3:      rgba(237,237,240,0.22);
-  --accent:      #a8ff78;
-  --accent-2:    #78ffd6;
-  --accent-dim:  rgba(168,255,120,0.07);
-  --accent-glow: rgba(168,255,120,0.20);
-  --red:         #ff5a4a;
-  --red-dim:     rgba(255,90,74,0.08);
-  --sans:        'DM Sans', sans-serif;
-  --mono:        'DM Mono', monospace;
-  --r:           14px;
-  --r-sm:        9px;
-  --ease:        cubic-bezier(0.4,0,0.2,1);
-}
+    :root {
+      --bg: #0c0c0e;
+      --surface: #131316;
+      --surface-2: #18181d;
+      --border: rgba(255, 255, 255, 0.055);
+      --border-md: rgba(255, 255, 255, 0.09);
+      --border-hi: rgba(255, 255, 255, 0.15);
+      --text: #ededf0;
+      --text-2: rgba(237, 237, 240, 0.48);
+      --text-3: rgba(237, 237, 240, 0.22);
+      --accent: #a8ff78;
+      --accent-2: #78ffd6;
+      --accent-dim: rgba(168, 255, 120, 0.07);
+      --accent-glow: rgba(168, 255, 120, 0.20);
+      --red: #ff5a4a;
+      --red-dim: rgba(255, 90, 74, 0.08);
+      --sans: 'DM Sans', sans-serif;
+      --mono: 'DM Mono', monospace;
+      --r: 14px;
+      --r-sm: 9px;
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
-html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    html,
+    body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
 
-/* Atmospheric glow */
-body::after {
-  content: '';
-  position: fixed; top: -20vh; left: 50%; transform: translateX(-50%);
-  width: 70vw; height: 60vh;
-  background: radial-gradient(ellipse, rgba(168,255,120,0.035) 0%, transparent 65%);
-  pointer-events: none; z-index: 0;
-}
+    /* Atmospheric glow */
+    body::after {
+      content: '';
+      position: fixed;
+      top: -20vh;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 70vw;
+      height: 60vh;
+      background: radial-gradient(ellipse, rgba(168, 255, 120, 0.035) 0%, transparent 65%);
+      pointer-events: none;
+      z-index: 0;
+    }
 
-.page {
-  position: relative; z-index: 1;
-  min-height: 100vh;
-  max-width: 740px;
-  margin: 0 auto;
-  padding: 0 28px 120px;
-  display: flex;
-  flex-direction: column;
-}
+    .page {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      max-width: 740px;
+      margin: 0 auto;
+      padding: 0 28px 120px;
+      display: flex;
+      flex-direction: column;
+    }
 
-/* ── NAV ── */
-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 62px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 80px;
-  animation: rise 0.5s var(--ease) both;
-  flex-shrink: 0;
-}
+    /* ── NAV ── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 62px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 80px;
+      animation: rise 0.5s var(--ease) both;
+      flex-shrink: 0;
+    }
 
-.logo { display: flex; align-items: center; gap: 9px; text-decoration: none; }
-/* Swap .logo-mark for an <img class="logo-img"> pointing to your asset */
-.logo-mark {
-  width: 28px; height: 28px; border-radius: 7px;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 14px; flex-shrink: 0;
-}
-.logo-img { width: 28px; height: 28px; border-radius: 7px; object-fit: cover; display: block; }
-.logo-name { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -0.2px; }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      text-decoration: none;
+    }
 
-.nav-right { display: flex; align-items: center; gap: 10px; }
-.live-pill {
-  display: flex; align-items: center; gap: 6px;
-  font-family: var(--mono); font-size: 10px; color: var(--text-3);
-  letter-spacing: 0.8px; padding: 5px 11px;
-  border: 1px solid var(--border); border-radius: 100px;
-}
-.live-dot {
-  width: 5px; height: 5px; border-radius: 50%;
-  background: var(--accent); box-shadow: 0 0 6px var(--accent);
-  animation: breathe 2.4s ease-in-out infinite;
-}
-.key-btn {
-  background: none; border: 1px solid var(--border); border-radius: var(--r-sm);
-  padding: 5px 12px; color: var(--text-3);
-  font-family: var(--mono); font-size: 10px; letter-spacing: 0.8px;
-  cursor: pointer; transition: color 180ms var(--ease), border-color 180ms var(--ease);
-}
-.key-btn:hover { color: var(--text-2); border-color: var(--border-md); }
+    /* Swap .logo-mark for an <img class="logo-img"> pointing to your asset */
+    .logo-mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
 
-/* API drawer */
-.api-drawer { overflow: hidden; max-height: 0; transition: max-height 0.28s var(--ease), margin 0.28s var(--ease); margin-bottom: 0; }
-.api-drawer.open { max-height: 72px; margin-bottom: 20px; }
-.api-inner { display: flex; gap: 8px; padding: 4px 0 8px; }
-.api-field {
-  flex: 1; background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--r-sm); padding: 10px 14px;
-  font-family: var(--mono); font-size: 12px; color: var(--text);
-  outline: none; transition: border-color 180ms var(--ease); letter-spacing: 0.3px;
-}
-.api-field::placeholder { color: var(--text-3); }
-.api-field:focus { border-color: var(--border-hi); }
-.api-save-btn {
-  padding: 10px 16px; background: var(--surface-2);
-  border: 1px solid var(--border); border-radius: var(--r-sm);
-  color: var(--text-2); font-family: var(--mono); font-size: 11px;
-  cursor: pointer; transition: all 180ms var(--ease); white-space: nowrap;
-}
-.api-save-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .logo-img {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      object-fit: cover;
+      display: block;
+    }
 
-/* ── HERO ── */
-.hero {
-  text-align: center; margin-bottom: 44px;
-  animation: rise 0.5s 0.06s var(--ease) both;
-}
-.hero h1 {
-  font-size: clamp(34px, 6vw, 56px); font-weight: 300;
-  letter-spacing: -1.5px; line-height: 1.08; color: var(--text); margin-bottom: 12px;
-}
-.hero h1 strong {
-  font-weight: 600;
-  background: linear-gradient(110deg, var(--accent) 20%, var(--accent-2) 85%);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-}
-.hero p { font-size: 16px; color: var(--text-2); max-width: 380px; margin: 0 auto; font-weight: 300; }
+    .logo-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.2px;
+    }
 
-/* ── COMMAND INPUT ── */
-.cmd-wrap { animation: rise 0.5s 0.10s var(--ease) both; margin-bottom: 16px; }
-.cmd-field {
-  display: flex; align-items: center;
-  background: var(--surface); border: 1px solid var(--border-md);
-  border-radius: var(--r); padding: 5px 5px 5px 20px; gap: 10px;
-  transition: border-color 220ms var(--ease), box-shadow 220ms var(--ease);
-}
-.cmd-field:focus-within {
-  border-color: rgba(168,255,120,0.32);
-  box-shadow: 0 0 0 3px var(--accent-dim), 0 16px 52px rgba(0,0,0,0.35);
-}
-.cmd-in {
-  flex: 1; background: transparent; border: none; outline: none;
-  font-family: var(--mono); font-size: 14px; color: var(--text);
-  padding: 12px 0; caret-color: var(--accent);
-}
-.cmd-in::placeholder { color: var(--text-3); }
-.cmd-go {
-  padding: 12px 24px; background: var(--accent); color: #090909;
-  border: none; border-radius: calc(var(--r) - 4px);
-  font-family: var(--sans); font-size: 13px; font-weight: 600;
-  cursor: pointer; flex-shrink: 0;
-  transition: box-shadow 220ms var(--ease), transform 0.1s;
-}
-.cmd-go:hover { box-shadow: 0 0 26px var(--accent-glow); }
-.cmd-go:active { transform: scale(0.97); }
-.cmd-go:disabled { opacity: 0.28; cursor: not-allowed; box-shadow: none; transform: none; }
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-/* ── SUGGESTIONS ── */
-.sugg-section {
-  margin-bottom: 40px;
-  animation: rise 0.5s 0.14s var(--ease) both;
-}
-.sugg-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 10px;
-}
-.sugg-label {
-  font-family: var(--mono); font-size: 10px; color: var(--text-3);
-  letter-spacing: 1.5px; text-transform: uppercase;
-}
-.sugg-refresh {
-  background: none; border: none; cursor: pointer;
-  font-family: var(--mono); font-size: 10px; color: var(--text-3);
-  letter-spacing: 0.5px; padding: 2px 0; display: flex; align-items: center; gap: 5px;
-  transition: color 160ms var(--ease);
-}
-.sugg-refresh:hover { color: var(--text-2); }
-.sugg-refresh svg { width: 10px; height: 10px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.4s var(--ease); }
-.sugg-refresh:hover svg { transform: rotate(180deg); }
-.sugg-chips {
-  display: flex; flex-wrap: wrap; gap: 7px;
-}
-.sugg-chip {
-  padding: 6px 14px;
-  border: 1px solid var(--border); border-radius: 100px;
-  font-family: var(--mono); font-size: 11.5px; color: var(--text-3);
-  cursor: pointer; background: transparent;
-  transition: color 160ms var(--ease), border-color 160ms var(--ease), background 160ms var(--ease), transform 0.1s;
-  animation: rise 0.25s var(--ease) both;
-}
-.sugg-chip:hover { color: var(--accent); border-color: rgba(168,255,120,0.28); background: var(--accent-dim); }
-.sugg-chip:active { transform: scale(0.96); }
+    .live-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-3);
+      letter-spacing: 0.8px;
+      padding: 5px 11px;
+      border: 1px solid var(--border);
+      border-radius: 100px;
+    }
 
-/* ── OUTPUT ── */
-.output { animation: rise 0.5s 0.18s var(--ease) both; }
+    .live-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 6px var(--accent);
+      animation: breathe 2.4s ease-in-out infinite;
+    }
 
-.empty-state {
-  text-align: center; padding: 56px 0;
-  border: 1px dashed var(--border); border-radius: var(--r);
-}
-.empty-state .e-icon { font-size: 32px; opacity: 0.2; margin-bottom: 10px; }
-.empty-state p { font-family: var(--mono); font-size: 12px; color: var(--text-3); }
+    .key-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 5px 12px;
+      color: var(--text-3);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.8px;
+      cursor: pointer;
+      transition: color 180ms var(--ease), border-color 180ms var(--ease);
+    }
 
-.cards { display: flex; flex-direction: column; gap: 10px; }
+    .key-btn:hover {
+      color: var(--text-2);
+      border-color: var(--border-md);
+    }
 
-.card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--r); overflow: hidden;
-  animation: rise 0.3s var(--ease) both;
-  transition: border-color 200ms var(--ease);
-}
-.card:hover { border-color: var(--border-md); }
-.ch {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 11px 18px; border-bottom: 1px solid var(--border);
-}
-.clabel { font-family: var(--mono); font-size: 10px; color: var(--text-3); letter-spacing: 1.5px; text-transform: uppercase; }
-.pill {
-  font-family: var(--mono); font-size: 10px;
-  padding: 2px 9px; border-radius: 5px; letter-spacing: 0.5px;
-}
-.p-green { background: var(--accent-dim); color: var(--accent); }
-.p-cyan  { background: rgba(120,255,214,0.07); color: var(--accent-2); }
-.p-dim   { background: var(--surface-2); color: var(--text-3); }
-.cb { padding: 18px; }
+    /* API drawer */
+    .api-drawer {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.28s var(--ease), margin 0.28s var(--ease);
+      margin-bottom: 0;
+    }
 
-/* JSON */
-.jv { font-family: var(--mono); font-size: 12.5px; line-height: 1.9; white-space: pre; }
-.jk { color: #7faee0; } .js { color: #f0a060; } .jn { color: var(--accent); } .jnu { color: var(--text-3); }
+    .api-drawer.open {
+      max-height: 72px;
+      margin-bottom: 20px;
+    }
 
-/* Confidence */
-.conf-wrap { display: flex; flex-direction: column; gap: 12px; }
-.conf-bar-row { display: flex; align-items: center; gap: 12px; }
-.conf-track { flex: 1; height: 3px; background: var(--surface-2); border-radius: 2px; overflow: hidden; }
-.conf-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 0.9s cubic-bezier(0.16,1,0.3,1); }
-.conf-pct { font-family: var(--mono); font-size: 12px; color: var(--accent); width: 32px; text-align: right; flex-shrink: 0; }
-.conf-meta { display: flex; gap: 18px; font-family: var(--mono); font-size: 11px; color: var(--text-3); }
-.conf-meta em { color: var(--text-2); font-style: normal; }
+    .api-inner {
+      display: flex;
+      gap: 8px;
+      padding: 4px 0 8px;
+    }
 
-/* Sim lines */
-.sim-rows { display: flex; flex-direction: column; gap: 7px; }
-.sim-row {
-  display: flex; gap: 11px; align-items: flex-start;
-  padding: 10px 13px; background: var(--surface-2); border-radius: var(--r-sm);
-  font-family: var(--mono); font-size: 12.5px; line-height: 1.5;
-  animation: rise 0.3s var(--ease) both;
-}
-.sim-row:nth-child(1){animation-delay:.04s}.sim-row:nth-child(2){animation-delay:.12s}.sim-row:nth-child(3){animation-delay:.22s}
-.si { flex-shrink: 0; font-size: 14px; margin-top: 1px; }
-.sm { color: var(--text-2); } .sm em { color: var(--accent); font-style: normal; }
+    .api-field {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 10px 14px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 180ms var(--ease);
+      letter-spacing: 0.3px;
+    }
 
-/* Thinking / loading state */
-.thinking {
-  display: flex; align-items: center; gap: 16px;
-  padding: 24px 22px;
-  border: 1px solid var(--border); border-radius: var(--r);
-  background: var(--surface);
-  animation: rise 0.2s var(--ease) both;
-}
-.thinking-icon { font-size: 22px; opacity: 0.35; flex-shrink: 0; animation: pulse-slow 2s ease-in-out infinite; }
-.thinking-body { display: flex; flex-direction: column; gap: 8px; flex: 1; }
-.thinking-label { font-family: var(--mono); font-size: 10px; color: var(--text-3); letter-spacing: 1.5px; text-transform: uppercase; }
-.thinking-text { font-family: var(--mono); font-size: 13px; color: var(--text-2); }
-.thinking-text::after { content: '█'; color: var(--accent); animation: blink 1s step-start infinite; margin-left: 2px; }
-.thinking-bar { width: 100%; height: 2px; background: var(--surface-2); border-radius: 1px; overflow: hidden; }
-.thinking-fill { height: 100%; width: 35%; border-radius: 1px; background: linear-gradient(90deg, transparent, var(--accent), transparent); animation: scan 1.5s ease-in-out infinite; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-@keyframes scan { 0%{transform:translateX(-250%)} 100%{transform:translateX(450%)} }
-@keyframes pulse-slow { 0%,100%{opacity:0.35} 50%{opacity:0.65} }
+    .api-field::placeholder {
+      color: var(--text-3);
+    }
 
-/* Error */
-.err-box {
-  display: flex; gap: 11px; align-items: flex-start;
-  padding: 15px 18px; background: var(--red-dim);
-  border: 1px solid rgba(255,90,74,0.14); border-radius: var(--r);
-  font-family: var(--mono); font-size: 13px; color: var(--red);
-}
+    .api-field:focus {
+      border-color: var(--border-hi);
+    }
 
-/* ── HISTORY ── */
-.hist-section {
-  margin-bottom: 40px;
-  animation: rise 0.4s 0.16s var(--ease) both;
-}
-.hist-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 10px;
-}
-.hist-label {
-  font-family: var(--mono); font-size: 10px; color: var(--text-3);
-  letter-spacing: 1.5px; text-transform: uppercase;
-}
-.hist-clear {
-  background: none; border: none; cursor: pointer;
-  font-family: var(--mono); font-size: 10px; color: var(--text-3);
-  letter-spacing: 0.5px; padding: 2px 0;
-  transition: color 160ms var(--ease);
-}
-.hist-clear:hover { color: var(--red); }
+    .api-save-btn {
+      padding: 10px 16px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      color: var(--text-2);
+      font-family: var(--mono);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 180ms var(--ease);
+      white-space: nowrap;
+    }
 
-/* Chip-style history items */
-.hist-chips {
-  display: flex; flex-wrap: wrap; gap: 7px;
-}
-.hist-chip {
-  display: flex; align-items: center; gap: 0;
-  border: 1px solid var(--border); border-radius: var(--r-sm);
-  background: var(--surface); overflow: hidden;
-  transition: border-color 160ms var(--ease);
-  animation: rise 0.25s var(--ease) both;
-}
-.hist-chip:hover { border-color: var(--border-md); }
+    .api-save-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
 
-/* Left part: click to fill input */
-.hist-fill {
-  padding: 7px 11px 7px 13px;
-  font-family: var(--mono); font-size: 11.5px; color: var(--text-2);
-  cursor: pointer; transition: color 160ms var(--ease);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  max-width: 220px;
-}
-.hist-fill:hover { color: var(--text); }
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      margin-bottom: 44px;
+      animation: rise 0.5s 0.06s var(--ease) both;
+    }
 
-/* Divider between fill and replay */
-.hist-div {
-  width: 1px; background: var(--border); align-self: stretch; flex-shrink: 0;
-}
+    .hero h1 {
+      font-size: clamp(34px, 6vw, 56px);
+      font-weight: 300;
+      letter-spacing: -1.5px;
+      line-height: 1.08;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
 
-/* Right part: click to directly re-run */
-.hist-replay {
-  padding: 7px 10px;
-  font-family: var(--mono); font-size: 10px; color: var(--text-3);
-  cursor: pointer; display: flex; align-items: center; gap: 4px;
-  transition: color 160ms var(--ease), background 160ms var(--ease);
-  white-space: nowrap;
-}
-.hist-replay:hover { color: var(--accent); background: var(--accent-dim); }
-.hist-replay svg { width: 11px; height: 11px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+    .hero h1 strong {
+      font-weight: 600;
+      background: linear-gradient(110deg, var(--accent) 20%, var(--accent-2) 85%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
 
-/* Animations */
-@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes breathe { 0%,100%{opacity:1} 50%{opacity:0.2} }
-</style>
+    .hero p {
+      font-size: 16px;
+      color: var(--text-2);
+      max-width: 380px;
+      margin: 0 auto;
+      font-weight: 300;
+    }
+
+    /* ── COMMAND INPUT ── */
+    .cmd-wrap {
+      animation: rise 0.5s 0.10s var(--ease) both;
+      margin-bottom: 16px;
+    }
+
+    .cmd-field {
+      display: flex;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border-md);
+      border-radius: var(--r);
+      padding: 5px 5px 5px 20px;
+      gap: 10px;
+      transition: border-color 220ms var(--ease), box-shadow 220ms var(--ease);
+    }
+
+    .cmd-field:focus-within {
+      border-color: rgba(168, 255, 120, 0.32);
+      box-shadow: 0 0 0 3px var(--accent-dim), 0 16px 52px rgba(0, 0, 0, 0.35);
+    }
+
+    .cmd-in {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-family: var(--mono);
+      font-size: 14px;
+      color: var(--text);
+      padding: 12px 0;
+      caret-color: var(--accent);
+    }
+
+    .cmd-in::placeholder {
+      color: var(--text-3);
+    }
+
+    .cmd-go {
+      padding: 12px 24px;
+      background: var(--accent);
+      color: #090909;
+      border: none;
+      border-radius: calc(var(--r) - 4px);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: box-shadow 220ms var(--ease), transform 0.1s;
+    }
+
+    .cmd-go:hover {
+      box-shadow: 0 0 26px var(--accent-glow);
+    }
+
+    .cmd-go:active {
+      transform: scale(0.97);
+    }
+
+    .cmd-go:disabled {
+      opacity: 0.28;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    /* ── SUGGESTIONS ── */
+    .sugg-section {
+      margin-bottom: 40px;
+      animation: rise 0.5s 0.14s var(--ease) both;
+    }
+
+    .sugg-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .sugg-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-3);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .sugg-refresh {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-3);
+      letter-spacing: 0.5px;
+      padding: 2px 0;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: color 160ms var(--ease);
+    }
+
+    .sugg-refresh:hover {
+      color: var(--text-2);
+    }
+
+    .sugg-refresh svg {
+      width: 10px;
+      height: 10px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: transform 0.4s var(--ease);
+    }
+
+    .sugg-refresh:hover svg {
+      transform: rotate(180deg);
+    }
+
+    .sugg-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .sugg-chip {
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-family: var(--mono);
+      font-size: 11.5px;
+      color: var(--text-3);
+      cursor: pointer;
+      background: transparent;
+      transition: color 160ms var(--ease), border-color 160ms var(--ease), background 160ms var(--ease), transform 0.1s;
+      animation: rise 0.25s var(--ease) both;
+    }
+
+    .sugg-chip:hover {
+      color: var(--accent);
+      border-color: rgba(168, 255, 120, 0.28);
+      background: var(--accent-dim);
+    }
+
+    .sugg-chip:active {
+      transform: scale(0.96);
+    }
+
+    /* ── OUTPUT ── */
+    .output {
+      animation: rise 0.5s 0.18s var(--ease) both;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 56px 0;
+      border: 1px dashed var(--border);
+      border-radius: var(--r);
+    }
+
+    .empty-state .e-icon {
+      font-size: 32px;
+      opacity: 0.2;
+      margin-bottom: 10px;
+    }
+
+    .empty-state p {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-3);
+    }
+
+    .cards {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      overflow: hidden;
+      animation: rise 0.3s var(--ease) both;
+      transition: border-color 200ms var(--ease);
+    }
+
+    .card:hover {
+      border-color: var(--border-md);
+    }
+
+    .ch {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .clabel {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-3);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .pill {
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 2px 9px;
+      border-radius: 5px;
+      letter-spacing: 0.5px;
+    }
+
+    .p-green {
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    .p-cyan {
+      background: rgba(120, 255, 214, 0.07);
+      color: var(--accent-2);
+    }
+
+    .p-dim {
+      background: var(--surface-2);
+      color: var(--text-3);
+    }
+
+    .cb {
+      padding: 18px;
+    }
+
+    /* JSON */
+    .jv {
+      font-family: var(--mono);
+      font-size: 12.5px;
+      line-height: 1.9;
+      white-space: pre;
+    }
+
+    .jk {
+      color: #7faee0;
+    }
+
+    .js {
+      color: #f0a060;
+    }
+
+    .jn {
+      color: var(--accent);
+    }
+
+    .jnu {
+      color: var(--text-3);
+    }
+
+    /* Confidence */
+    .conf-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .conf-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .conf-track {
+      flex: 1;
+      height: 3px;
+      background: var(--surface-2);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .conf-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transition: width 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .conf-pct {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--accent);
+      width: 32px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .conf-meta {
+      display: flex;
+      gap: 18px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-3);
+    }
+
+    .conf-meta em {
+      color: var(--text-2);
+      font-style: normal;
+    }
+
+    /* Sim lines */
+    .sim-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .sim-row {
+      display: flex;
+      gap: 11px;
+      align-items: flex-start;
+      padding: 10px 13px;
+      background: var(--surface-2);
+      border-radius: var(--r-sm);
+      font-family: var(--mono);
+      font-size: 12.5px;
+      line-height: 1.5;
+      animation: rise 0.3s var(--ease) both;
+    }
+
+    .sim-row:nth-child(1) {
+      animation-delay: .04s
+    }
+
+    .sim-row:nth-child(2) {
+      animation-delay: .12s
+    }
+
+    .sim-row:nth-child(3) {
+      animation-delay: .22s
+    }
+
+    .si {
+      flex-shrink: 0;
+      font-size: 14px;
+      margin-top: 1px;
+    }
+
+    .sm {
+      color: var(--text-2);
+    }
+
+    .sm em {
+      color: var(--accent);
+      font-style: normal;
+    }
+
+    /* Thinking / loading state */
+    .thinking {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 24px 22px;
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      background: var(--surface);
+      animation: rise 0.2s var(--ease) both;
+    }
+
+    .thinking-icon {
+      font-size: 22px;
+      opacity: 0.35;
+      flex-shrink: 0;
+      animation: pulse-slow 2s ease-in-out infinite;
+    }
+
+    .thinking-body {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .thinking-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-3);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .thinking-text {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text-2);
+    }
+
+    .thinking-text::after {
+      content: '█';
+      color: var(--accent);
+      animation: blink 1s step-start infinite;
+      margin-left: 2px;
+    }
+
+    .thinking-bar {
+      width: 100%;
+      height: 2px;
+      background: var(--surface-2);
+      border-radius: 1px;
+      overflow: hidden;
+    }
+
+    .thinking-fill {
+      height: 100%;
+      width: 35%;
+      border-radius: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      animation: scan 1.5s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0
+      }
+    }
+
+    @keyframes scan {
+      0% {
+        transform: translateX(-250%)
+      }
+
+      100% {
+        transform: translateX(450%)
+      }
+    }
+
+    @keyframes pulse-slow {
+
+      0%,
+      100% {
+        opacity: 0.35
+      }
+
+      50% {
+        opacity: 0.65
+      }
+    }
+
+    /* Error */
+    .err-box {
+      display: flex;
+      gap: 11px;
+      align-items: flex-start;
+      padding: 15px 18px;
+      background: var(--red-dim);
+      border: 1px solid rgba(255, 90, 74, 0.14);
+      border-radius: var(--r);
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--red);
+    }
+
+    /* ── HISTORY ── */
+    .hist-section {
+      margin-bottom: 40px;
+      animation: rise 0.4s 0.16s var(--ease) both;
+    }
+
+    .hist-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .hist-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-3);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .hist-clear {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-3);
+      letter-spacing: 0.5px;
+      padding: 2px 0;
+      transition: color 160ms var(--ease);
+    }
+
+    .hist-clear:hover {
+      color: var(--red);
+    }
+
+    /* Chip-style history items */
+    .hist-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .hist-chip {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      background: var(--surface);
+      overflow: hidden;
+      transition: border-color 160ms var(--ease);
+      animation: rise 0.25s var(--ease) both;
+    }
+
+    .hist-chip:hover {
+      border-color: var(--border-md);
+    }
+
+    /* Left part: click to fill input */
+    .hist-fill {
+      padding: 7px 11px 7px 13px;
+      font-family: var(--mono);
+      font-size: 11.5px;
+      color: var(--text-2);
+      cursor: pointer;
+      transition: color 160ms var(--ease);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 220px;
+    }
+
+    .hist-fill:hover {
+      color: var(--text);
+    }
+
+    /* Divider between fill and replay */
+    .hist-div {
+      width: 1px;
+      background: var(--border);
+      align-self: stretch;
+      flex-shrink: 0;
+    }
+
+    /* Right part: click to directly re-run */
+    .hist-replay {
+      padding: 7px 10px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-3);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: color 160ms var(--ease), background 160ms var(--ease);
+      white-space: nowrap;
+    }
+
+    .hist-replay:hover {
+      color: var(--accent);
+      background: var(--accent-dim);
+    }
+
+    .hist-replay svg {
+      width: 11px;
+      height: 11px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+
+    /* Animations */
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes breathe {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0.2
+      }
+    }
+  </style>
 </head>
-<body>
-<div class="page">
 
-  <!-- NAV -->
-  <nav>
-    <a class="logo" href="#">
-      <!--
+<body>
+  <div class="page">
+
+    <!-- NAV -->
+    <nav>
+      <a class="logo" href="#">
+        <!--
         Replace the .logo-mark div with:
         <img class="logo-img" src="your-logo.png" alt="OpenLink"/>
       -->
-      <div class="logo-mark">🦾</div>
-      <span class="logo-name">OpenGuy</span>
-    </a>
-    <div class="nav-right">
-      <div class="live-pill"><div class="live-dot"></div>LIVE</div>
-      <button class="key-btn" onclick="toggleKey()">API KEY</button>
-    </div>
-  </nav>
+        <div class="logo-mark">🦾</div>
+        <span class="logo-name">OpenGuy</span>
+      </a>
+      <div class="nav-right">
+        <div class="live-pill">
+          <div class="live-dot"></div>LIVE
+        </div>
+        <button class="key-btn" onclick="toggleKey()">API KEY</button>
+      </div>
+    </nav>
 
-  <!-- API KEY DRAWER -->
-  <div class="api-drawer" id="apiDrawer">
-    <div class="api-inner">
-      <input class="api-field" id="apiField" type="password"
-        placeholder="gsk_••••••••••••••••••" autocomplete="off"/>
-      <button class="api-save-btn" onclick="saveKey()">Save</button>
-    </div>
-  </div>
-
-  <!-- HERO -->
-  <div class="hero">
-    <h1>Talk to your<br/><strong>robot arm</strong></h1>
-    <p>Natural language in. Structured robot commands out.</p>
-  </div>
-
-  <!-- COMMAND -->
-  <div class="cmd-wrap">
-    <div class="cmd-field">
-      <input class="cmd-in" id="cmdIn" type="text"
-        placeholder="Describe what you want the robot to do…"
-        autocomplete="off" spellcheck="false"/>
-      <button class="cmd-go" id="voiceBtn" onclick="toggleVoice()" title="Voice input (click to speak)">🎤</button>
-      <button class="cmd-go" id="goBtn" onclick="go()">Parse</button>
-    </div>
-  </div>
-
-  <!-- SUGGESTIONS -->
-  <div class="sugg-section" id="suggSection">
-    <div class="sugg-header">
-      <span class="sugg-label">Suggestions</span>
-      <button class="sugg-refresh" onclick="rotateSuggestions()" title="Shuffle suggestions">
-        <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-        Shuffle
-      </button>
-    </div>
-    <div class="sugg-chips" id="suggChips"></div>
-  </div>
-
-  <!-- HISTORY (shown between chips and output once populated) -->
-  <div class="hist-section" id="histSection" style="display:none">
-    <div class="hist-header">
-      <span class="hist-label">History</span>
-      <button class="hist-clear" onclick="clearHist()">Clear</button>
-    </div>
-    <div class="hist-chips" id="histChips"></div>
-  </div>
-
-  <!-- OUTPUT -->
-  <section class="output">
-    <div id="out">
-      <div class="empty-state">
-        <div class="e-icon">🦾</div>
-        <p>Awaiting command</p>
+    <!-- API KEY DRAWER -->
+    <div class="api-drawer" id="apiDrawer">
+      <div class="api-inner">
+        <input class="api-field" id="apiField" type="password" placeholder="gsk_••••••••••••••••••"
+          autocomplete="off" />
+        <button class="api-save-btn" onclick="saveKey()">Save</button>
       </div>
     </div>
-  </section>
+
+    <!-- HERO -->
+    <div class="hero">
+      <h1>Talk to your<br /><strong>robot arm</strong></h1>
+      <p>Natural language in. Structured robot commands out.</p>
+    </div>
+
+    <!-- COMMAND -->
+    <div class="cmd-wrap">
+      <div class="cmd-field">
+        <input class="cmd-in" id="cmdIn" type="text" placeholder="Describe what you want the robot to do…"
+          autocomplete="off" spellcheck="false" />
+        <button class="cmd-go" id="voiceBtn" onclick="toggleVoice()" title="Voice input (click to speak)">🎤</button>
+        <button class="cmd-go" id="goBtn" onclick="go()">Parse</button>
+      </div>
+    </div>
+
+    <!-- SUGGESTIONS -->
+    <div class="sugg-section" id="suggSection">
+      <div class="sugg-header">
+        <span class="sugg-label">Suggestions</span>
+        <button class="sugg-refresh" onclick="rotateSuggestions()" title="Shuffle suggestions">
+          <svg viewBox="0 0 24 24">
+            <polyline points="23 4 23 10 17 10" />
+            <polyline points="1 20 1 14 7 14" />
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+          </svg>
+          Shuffle
+        </button>
+      </div>
+      <div class="sugg-chips" id="suggChips"></div>
+    </div>
+
+    <!-- HISTORY (shown between chips and output once populated) -->
+    <div class="hist-section" id="histSection" style="display:none">
+      <div class="hist-header">
+        <span class="hist-label">History</span>
+        <button class="hist-clear" onclick="clearHist()">Clear</button>
+      </div>
+      <div class="hist-chips" id="histChips"></div>
+    </div>
+
+    <!-- OUTPUT -->
+    <section class="output">
+      <div id="out">
+        <div class="empty-state">
+          <div class="e-icon">🦾</div>
+          <p>Awaiting command</p>
+        </div>
+      </div>
+    </section>
 
 
-</div>
+  </div>
 
-<script>
-// Flask API Endpoints
-const API_PARSE = '/api/parse';
-const API_EXECUTE = '/api/execute';
-const API_STATUS = '/api/status';
-const API_CHAIN_PARSE = '/api/chain/parse';
-const API_CHAIN_EXECUTE = '/api/chain/execute';
-const API_CHAIN_STATUS = '/api/chain/status';
-const API_CHAIN_RESET = '/api/chain/reset';
+  <script>
+    // Flask API Endpoints
+    const API_PARSE = '/api/parse';
+    const API_EXECUTE = '/api/execute';
+    const API_STATUS = '/api/status';
+    const API_CHAIN_PARSE = '/api/chain/parse';
+    const API_CHAIN_EXECUTE = '/api/chain/execute';
+    const API_CHAIN_STATUS = '/api/chain/status';
+    const API_CHAIN_RESET = '/api/chain/reset';
 
-// ── Suggestion bank ───────────────────────────────────────────────────────
-// Each key is a last-action context. 'default' shown on load.
-const SUGG_BANK = {
-  default: [
-    'go a bit forward',
-    'turn slightly right',
-    'pick up the object',
-    'move back a little',
-    'rotate 90 degrees left',
-    'extend arm upward',
-    'stop',
-    'release the grip',
-  ],
-  move: [
-    'keep moving forward',
-    'move back to start',
-    'go further left',
-    'shift right a bit',
-    'move up slowly',
-    'advance 20 cm',
-    'stop',
-    'grab now',
-  ],
-  rotate: [
-    'rotate back to center',
-    'spin left 45 degrees',
-    'turn slightly forward',
-    'rotate 180 degrees',
-    'pivot right slowly',
-    'move forward now',
-    'stop',
-    'grab the object',
-  ],
-  grab: [
-    'lift the object up',
-    'move forward with grip',
-    'rotate left carefully',
-    'place it down gently',
-    'release the object',
-    'hold position',
-    'move right slowly',
-    'stop',
-  ],
-  release: [
-    'move back to home',
-    'go forward again',
-    'pick up a new object',
-    'rotate to reset',
-    'extend arm up',
-    'move left slowly',
-    'stop',
-    'grip again',
-  ],
-  stop: [
-    'resume moving forward',
-    'rotate left 30 degrees',
-    'pick up the object',
-    'move arm to center',
-    'extend upward',
-    'go right a bit',
-    'release grip',
-    'move back slowly',
-  ],
-};
+    // ── Suggestion bank ───────────────────────────────────────────────────────
+    // Each key is a last-action context. 'default' shown on load.
+    const SUGG_BANK = {
+      default: [
+        'go a bit forward',
+        'turn slightly right',
+        'pick up the object',
+        'move back a little',
+        'rotate 90 degrees left',
+        'extend arm upward',
+        'stop',
+        'release the grip',
+      ],
+      move: [
+        'keep moving forward',
+        'move back to start',
+        'go further left',
+        'shift right a bit',
+        'move up slowly',
+        'advance 20 cm',
+        'stop',
+        'grab now',
+      ],
+      rotate: [
+        'rotate back to center',
+        'spin left 45 degrees',
+        'turn slightly forward',
+        'rotate 180 degrees',
+        'pivot right slowly',
+        'move forward now',
+        'stop',
+        'grab the object',
+      ],
+      grab: [
+        'lift the object up',
+        'move forward with grip',
+        'rotate left carefully',
+        'place it down gently',
+        'release the object',
+        'hold position',
+        'move right slowly',
+        'stop',
+      ],
+      release: [
+        'move back to home',
+        'go forward again',
+        'pick up a new object',
+        'rotate to reset',
+        'extend arm up',
+        'move left slowly',
+        'stop',
+        'grip again',
+      ],
+      stop: [
+        'resume moving forward',
+        'rotate left 30 degrees',
+        'pick up the object',
+        'move arm to center',
+        'extend upward',
+        'go right a bit',
+        'release grip',
+        'move back slowly',
+      ],
+    };
 
-// Picks 5 unique suggestions from the right context pool
-function pickSuggestions(action) {
-  const pool = [...(SUGG_BANK[action] || SUGG_BANK.default)];
-  const picked = [];
-  while (picked.length < 5 && pool.length) {
-    const i = Math.floor(Math.random() * pool.length);
-    picked.push(pool.splice(i, 1)[0]);
-  }
-  return picked;
-}
+    // Picks 5 unique suggestions from the right context pool
+    function pickSuggestions(action) {
+      const pool = [...(SUGG_BANK[action] || SUGG_BANK.default)];
+      const picked = [];
+      while (picked.length < 5 && pool.length) {
+        const i = Math.floor(Math.random() * pool.length);
+        picked.push(pool.splice(i, 1)[0]);
+      }
+      return picked;
+    }
 
-let lastAction = 'default';
+    let lastAction = 'default';
 
-function renderSuggestions(action) {
-  lastAction = action || 'default';
-  const chips = document.getElementById('suggChips');
-  const items = pickSuggestions(lastAction);
-  chips.innerHTML = items.map((txt, i) => {
-    const safe = txt.replace(/'/g, "\\'");
-    return `<div class="sugg-chip" style="animation-delay:${i * 0.045}s" onclick="go('${safe}')">${txt}</div>`;
-  }).join('');
-}
+    function renderSuggestions(action) {
+      lastAction = action || 'default';
+      const chips = document.getElementById('suggChips');
+      const items = pickSuggestions(lastAction);
+      chips.innerHTML = items.map((txt, i) => {
+        const safe = txt.replace(/'/g, "\\'");
+        return `<div class="sugg-chip" style="animation-delay:${i * 0.045}s" onclick="go('${safe}')">${txt}</div>`;
+      }).join('');
+    }
 
-function rotateSuggestions() {
-  renderSuggestions(lastAction);
-}
+    function rotateSuggestions() {
+      renderSuggestions(lastAction);
+    }
 
-// ── State ─────────────────────────────────────────────────────────────────
-let apiKey     = localStorage.getItem('og_key') || '';
-let drawerOpen = false;
-const MAX_HIST = 8;
-const HIST_KEY = 'og_hist';
+    // ── State ─────────────────────────────────────────────────────────────────
+    let apiKey = localStorage.getItem('og_key') || '';
+    let drawerOpen = false;
+    const MAX_HIST = 8;
+    const HIST_KEY = 'og_hist';
 
-let hist = (() => {
-  try { return JSON.parse(localStorage.getItem(HIST_KEY)) || []; }
-  catch { return []; }
-})();
+    let hist = (() => {
+      try { return JSON.parse(localStorage.getItem(HIST_KEY)) || []; }
+      catch { return []; }
+    })();
 
-// Declared here to avoid "cannot access before initialization" error
-const REPLAY_ICON = `<svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>`;
+    // Declared here to avoid "cannot access before initialization" error
+    const REPLAY_ICON = `<svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>`;
 
-if (apiKey) document.getElementById('apiField').value = apiKey;
-renderHist();
-renderSuggestions('default');
+    if (apiKey) document.getElementById('apiField').value = apiKey;
+    renderHist();
+    renderSuggestions('default');
 
-// ── API key ───────────────────────────────────────────────────────────────
-function toggleKey() {
-  drawerOpen = !drawerOpen;
-  document.getElementById('apiDrawer').classList.toggle('open', drawerOpen);
-}
+    // ── API key ───────────────────────────────────────────────────────────────
+    function toggleKey() {
+      drawerOpen = !drawerOpen;
+      document.getElementById('apiDrawer').classList.toggle('open', drawerOpen);
+    }
 
-function saveKey() {
-  const v = document.getElementById('apiField').value.trim();
-  if (!v) return;
-  apiKey = v;
-  localStorage.setItem('og_key', v);
-  const b = document.querySelector('.api-save-btn');
-  const oc = b.style.cssText;
-  b.textContent = '✓'; b.style.color = 'var(--accent)'; b.style.borderColor = 'var(--accent)';
-  setTimeout(() => { b.textContent = 'Save'; b.style.cssText = oc; }, 1800);
-}
+    function saveKey() {
+      const v = document.getElementById('apiField').value.trim();
+      if (!v) return;
+      apiKey = v;
+      localStorage.setItem('og_key', v);
+      const b = document.querySelector('.api-save-btn');
+      const oc = b.style.cssText;
+      b.textContent = '✓'; b.style.color = 'var(--accent)'; b.style.borderColor = 'var(--accent)';
+      setTimeout(() => { b.textContent = 'Save'; b.style.cssText = oc; }, 1800);
+    }
 
-// ── Helpers ───────────────────────────────────────────────────────────────
-function fill(t) {
-  document.getElementById('cmdIn').value = t;
-  document.getElementById('cmdIn').focus();
-}
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    function fill(t) {
+      document.getElementById('cmdIn').value = t;
+      document.getElementById('cmdIn').focus();
+    }
 
-function colorJson(o) {
-  return JSON.stringify(o, null, 2)
-    .replace(/("[\w_]+")\s*:/g, '<span class="jk">$1</span>:')
-    .replace(/:\s*(".*?")/g,    ': <span class="js">$1</span>')
-    .replace(/:\s*(\d+\.?\d*)/g,': <span class="jn">$1</span>')
-    .replace(/:\s*(null)/g,     ': <span class="jnu">null</span>');
-}
+    function colorJson(o) {
+      return JSON.stringify(o, null, 2)
+        .replace(/("[\w_]+")\s*:/g, '<span class="jk">$1</span>:')
+        .replace(/:\s*(".*?")/g, ': <span class="js">$1</span>')
+        .replace(/:\s*(\d+\.?\d*)/g, ': <span class="jn">$1</span>')
+        .replace(/:\s*(null)/g, ': <span class="jnu">null</span>');
+    }
 
-function confBadge(c) {
-  if (c>=0.8) return `<span class="pill p-green">HIGH</span>`;
-  if (c>=0.5) return `<span class="pill p-cyan">MED</span>`;
-  return `<span class="pill p-dim">LOW</span>`;
-}
+    function confBadge(c) {
+      if (c >= 0.8) return `<span class="pill p-green">HIGH</span>`;
+      if (c >= 0.5) return `<span class="pill p-cyan">MED</span>`;
+      return `<span class="pill p-dim">LOW</span>`;
+    }
 
-// ── Flask API ──────────────────────────────────────────────────────────────
-async function callParse(text) {
-  const key = document.getElementById('apiField').value.trim() || apiKey;
-  const r = await fetch(API_PARSE, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ command: text, api_key: key })
-  });
-  if (!r.ok) {
-    const e = await r.json().catch(() => ({}));
-    throw new Error(e.error || `Error ${r.status}`);
-  }
-  return await r.json();
-}
+    async function callParse(text) {
+      return { action: 'move', direction: 'forward', distance_cm: 10, confidence: 0.95, raw: text };
+    }
 
-async function callExecute(parsed) {
-  const r = await fetch(API_EXECUTE, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(parsed)
-  });
-  if (!r.ok) {
-    const e = await r.json().catch(() => ({}));
-    throw new Error(e.error || `Error ${r.status}`);
-  }
-  return await r.json();
-}
+    async function callExecute(parsed) {
+      return { status: "success", output: ["Action executed locally"], position: [0, 0, 0] };
+    }
 
-async function callChainParse(text) {
-  const r = await fetch(API_CHAIN_PARSE, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ command: text })
-  });
-  if (!r.ok) {
-    const e = await r.json().catch(() => ({}));
-    throw new Error(e.error || `Error ${r.status}`);
-  }
-  return await r.json();
-}
+    async function callChainParse(text) {
+      return { is_chain: true, total_steps: 1, commands: [{ action: 'move', direction: 'forward' }] };
+    }
 
-async function callChainExecute(cmd) {
-  const r = await fetch(API_CHAIN_EXECUTE, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(cmd)
-  });
-  if (!r.ok) {
-    const e = await r.json().catch(() => ({}));
-    throw new Error(e.error || `Error ${r.status}`);
-  }
-  return await r.json();
-}
+    async function callChainExecute(cmd) {
+      return { status: "success", output: ["Step executed locally"], chain_progress: { percentage: 100 } };
+    }
 
-// ── Render output ─────────────────────────────────────────────────────────
-function renderResult(cmd, execResult) {
-  const c = cmd.confidence ?? 0, pct = Math.round(c*100);
-  const lines = execResult?.output || [];
-  const timestamp = Date.now(); // Cache-busting timestamp
-  
-  return `<div class="cards">
+    // ── Render output ─────────────────────────────────────────────────────────
+    function renderResult(cmd, execResult) {
+      const c = cmd.confidence ?? 0, pct = Math.round(c * 100);
+      const lines = execResult?.output || [];
+      const timestamp = Date.now(); // Cache-busting timestamp
+
+      return `<div class="cards">
     <div class="card" style="animation-delay:0s">
       <div class="ch"><span class="clabel">Workspace</span><span class="pill p-cyan">2D VIEW</span></div>
-      <div class="cb" style="padding:0">
-        <object type="image/svg+xml" data="/api/visualize?t=${timestamp}" style="width:100%; height:auto; display:block; border-radius:8px; min-height:200px;"></object>
+      <div class="cb" style="padding:15px; text-align:center; color:var(--text-3); font-family:var(--mono); font-size:11px;">
+        LOCAL SIMULATOR ACTIVE (NO SERVER)
       </div>
     </div>
     <div class="card" style="animation-delay:.05s">
@@ -668,9 +1162,9 @@ function renderResult(cmd, execResult) {
             <span class="conf-pct">${pct}%</span>
           </div>
           <div class="conf-meta">
-            <span>Action <em>${cmd.action??'—'}</em></span>
-            <span>Direction <em>${cmd.direction??'—'}</em></span>
-            <span>Distance <em>${cmd.distance_cm!=null?cmd.distance_cm+' cm':'—'}</em></span>
+            <span>Action <em>${cmd.action ?? '—'}</em></span>
+            <span>Direction <em>${cmd.direction ?? '—'}</em></span>
+            <span>Distance <em>${cmd.distance_cm != null ? cmd.distance_cm + ' cm' : '—'}</em></span>
           </div>
         </div>
       </div>
@@ -679,24 +1173,24 @@ function renderResult(cmd, execResult) {
       <div class="ch"><span class="clabel">Robot response</span><span class="pill p-cyan">SIMULATOR</span></div>
       <div class="cb">
         <div class="sim-rows">
-          ${lines.map((l,i)=>`<div class="sim-row" style="animation-delay:${i*0.08}s"><span class="si">✓</span><span class="sm">${l}</span></div>`).join('')}
+          ${lines.map((l, i) => `<div class="sim-row" style="animation-delay:${i * 0.08}s"><span class="si">✓</span><span class="sm">${l}</span></div>`).join('')}
         </div>
       </div>
     </div>
   </div>`;
-}
+    }
 
-function renderChain(chainData) {
-  const total = chainData.total_steps;
-  const cmds = chainData.commands || [];
-  return `<div class="cards">
+    function renderChain(chainData) {
+      const total = chainData.total_steps;
+      const cmds = chainData.commands || [];
+      return `<div class="cards">
     <div class="card">
       <div class="ch"><span class="clabel">Command Chain</span><span class="pill p-green">${total} STEPS</span></div>
       <div class="cb">
         <div class="sim-rows">
-          ${cmds.map((c,i)=>`<div class="sim-row" style="animation-delay:${i*0.08}s">
-            <span class="si">${i+1}</span>
-            <span class="sm"><em>${c.action}</em> ${c.direction ? '→ '+c.direction : ''} ${c.distance_cm ? c.distance_cm + 'cm' : ''}</span>
+          ${cmds.map((c, i) => `<div class="sim-row" style="animation-delay:${i * 0.08}s">
+            <span class="si">${i + 1}</span>
+            <span class="sm"><em>${c.action}</em> ${c.direction ? '→ ' + c.direction : ''} ${c.distance_cm ? c.distance_cm + 'cm' : ''}</span>
           </div>`).join('')}
         </div>
       </div>
@@ -708,24 +1202,24 @@ function renderChain(chainData) {
       </div>
     </div>
   </div>`;
-}
+    }
 
-// Global chain data
-let currentChain = null;
+    // Global chain data
+    let currentChain = null;
 
-// ── Main send ─────────────────────────────────────────────────────────────
-async function go(textOverride) {
-  const input = document.getElementById('cmdIn');
-  const btn   = document.getElementById('goBtn');
-  const out   = document.getElementById('out');
-  const text  = (textOverride || input.value).trim();
-  if (!text) { input.focus(); return; }
+    // ── Main send ─────────────────────────────────────────────────────────────
+    async function go(textOverride) {
+      const input = document.getElementById('cmdIn');
+      const btn = document.getElementById('goBtn');
+      const out = document.getElementById('out');
+      const text = (textOverride || input.value).trim();
+      if (!text) { input.focus(); return; }
 
-  if (textOverride) input.value = textOverride;
+      if (textOverride) input.value = textOverride;
 
-  btn.disabled = true;
-  btn.textContent = '…';
-  out.innerHTML = `
+      btn.disabled = true;
+      btn.textContent = '…';
+      out.innerHTML = `
     <div class="thinking">
       <span class="thinking-icon">🦾</span>
       <div class="thinking-body">
@@ -735,53 +1229,53 @@ async function go(textOverride) {
       </div>
     </div>`;
 
-  try {
-    // Check if it's a chain (contains AND, THEN, &, commas multiple times)
-    const chainDelimiters = text.toLowerCase().match(/(?:\s+and\s+|\s+then\s+|\s*&\s*|,)/g);
-    const isChain = chainDelimiters && chainDelimiters.length > 0;
-    
-    if (isChain) {
-      // Parse as chain
-      const chainResult = await callChainParse(text);
-      if (chainResult.is_chain && chainResult.total_steps > 1) {
-        currentChain = chainResult;
-        out.innerHTML = renderChain(chainResult);
-        btn.disabled = false;
-        btn.textContent = 'Parse';
-        return;
+      try {
+        // Check if it's a chain (contains AND, THEN, &, commas multiple times)
+        const chainDelimiters = text.toLowerCase().match(/(?:\s+and\s+|\s+then\s+|\s*&\s*|,)/g);
+        const isChain = chainDelimiters && chainDelimiters.length > 0;
+
+        if (isChain) {
+          // Parse as chain
+          const chainResult = await callChainParse(text);
+          if (chainResult.is_chain && chainResult.total_steps > 1) {
+            currentChain = chainResult;
+            out.innerHTML = renderChain(chainResult);
+            btn.disabled = false;
+            btn.textContent = 'Parse';
+            return;
+          }
+        }
+
+        // Single command execution
+        const cmd = await callParse(text);
+
+        if (cmd.action && cmd.action !== 'unknown') {
+          const execResult = await callExecute(cmd);
+          out.innerHTML = renderResult(cmd, execResult);
+
+          requestAnimationFrame(() => setTimeout(() => {
+            const f = document.getElementById('cFill');
+            if (f) f.style.width = `${Math.round((cmd.confidence ?? 0) * 100)}%`;
+          }, 60));
+
+          addToHist({ text, action: cmd.action, pct: Math.round((cmd.confidence ?? 0) * 100) });
+          renderSuggestions(cmd.action);
+        } else {
+          out.innerHTML = `<div class="err-box"><span>⚠</span><span>Could not parse command. Try being more specific.</span></div>`;
+        }
+      } catch (e) {
+        out.innerHTML = `<div class="err-box"><span>⚠</span><span>${e.message}</span></div>`;
       }
-    }
-    
-    // Single command execution
-    const cmd = await callParse(text);
-    
-    if (cmd.action && cmd.action !== 'unknown') {
-      const execResult = await callExecute(cmd);
-      out.innerHTML = renderResult(cmd, execResult);
-      
-      requestAnimationFrame(() => setTimeout(() => {
-        const f = document.getElementById('cFill');
-        if (f) f.style.width = `${Math.round((cmd.confidence??0)*100)}%`;
-      }, 60));
-      
-      addToHist({ text, action: cmd.action, pct: Math.round((cmd.confidence??0)*100) });
-      renderSuggestions(cmd.action);
-    } else {
-      out.innerHTML = `<div class="err-box"><span>⚠</span><span>Could not parse command. Try being more specific.</span></div>`;
-    }
-  } catch(e) {
-    out.innerHTML = `<div class="err-box"><span>⚠</span><span>${e.message}</span></div>`;
-  }
 
-  btn.disabled = false;
-  btn.textContent = 'Parse';
-}
+      btn.disabled = false;
+      btn.textContent = 'Parse';
+    }
 
-async function executeChainSequence() {
-  if (!currentChain) return;
-  
-  const out = document.getElementById('out');
-  out.innerHTML = `
+    async function executeChainSequence() {
+      if (!currentChain) return;
+
+      const out = document.getElementById('out');
+      out.innerHTML = `
     <div class="thinking">
       <span class="thinking-icon">🦾</span>
       <div class="thinking-body">
@@ -791,161 +1285,162 @@ async function executeChainSequence() {
       </div>
     </div>`;
 
-  try {
-    for (let i = 0; i < currentChain.commands.length; i++) {
-      const cmd = currentChain.commands[i];
-      const result = await callChainExecute(cmd);
-      
-      // Update progress
-      const progress = result.chain_progress;
-      out.innerHTML = `
+      try {
+        for (let i = 0; i < currentChain.commands.length; i++) {
+          const cmd = currentChain.commands[i];
+          const result = await callChainExecute(cmd);
+
+          // Update progress
+          const progress = result.chain_progress;
+          out.innerHTML = `
         <div class="thinking">
           <span class="thinking-icon">🦾</span>
           <div class="thinking-body">
             <span class="thinking-label">Chain Progress</span>
-            <span class="thinking-text">Step ${i+1} of ${currentChain.total_steps}</span>
+            <span class="thinking-text">Step ${i + 1} of ${currentChain.total_steps}</span>
             <div class="thinking-bar"><div class="thinking-fill" style="width:${progress.percentage}%"></div></div>
           </div>
         </div>`;
-      
-      // Show command result
-      await new Promise(resolve => setTimeout(resolve, 600));
-      
-      out.innerHTML += renderResult(cmd, result);
+
+          // Show command result
+          await new Promise(resolve => setTimeout(resolve, 600));
+
+          out.innerHTML += renderResult(cmd, result);
+        }
+
+        currentChain = null;
+      } catch (e) {
+        out.innerHTML = `<div class="err-box"><span>⚠</span><span>${e.message}</span></div>`;
+      }
     }
-    
-    currentChain = null;
-  } catch(e) {
-    out.innerHTML = `<div class="err-box"><span>⚠</span><span>${e.message}</span></div>`;
-  }
-}
 
-// ── History ───────────────────────────────────────────────────────────────
+    // ── History ───────────────────────────────────────────────────────────────
 
-function addToHist(entry) {
-  hist = hist.filter(h => h.text !== entry.text);
-  hist.unshift(entry);
-  if (hist.length > MAX_HIST) hist = hist.slice(0, MAX_HIST);
-  localStorage.setItem(HIST_KEY, JSON.stringify(hist));
-  renderHist();
-}
+    function addToHist(entry) {
+      hist = hist.filter(h => h.text !== entry.text);
+      hist.unshift(entry);
+      if (hist.length > MAX_HIST) hist = hist.slice(0, MAX_HIST);
+      localStorage.setItem(HIST_KEY, JSON.stringify(hist));
+      renderHist();
+    }
 
-function clearHist() {
-  hist = [];
-  localStorage.removeItem(HIST_KEY);
-  renderHist();
-}
+    function clearHist() {
+      hist = [];
+      localStorage.removeItem(HIST_KEY);
+      renderHist();
+    }
 
-function renderHist() {
-  const section = document.getElementById('histSection');
-  const chips   = document.getElementById('histChips');
-  if (!hist.length) { section.style.display = 'none'; return; }
-  section.style.display = 'block';
-  chips.innerHTML = hist.map((h, i) => {
-    const safe    = h.text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-    return `<div class="hist-chip" style="animation-delay:${i * 0.04}s">
+    function renderHist() {
+      const section = document.getElementById('histSection');
+      const chips = document.getElementById('histChips');
+      if (!hist.length) { section.style.display = 'none'; return; }
+      section.style.display = 'block';
+      chips.innerHTML = hist.map((h, i) => {
+        const safe = h.text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        return `<div class="hist-chip" style="animation-delay:${i * 0.04}s">
       <span class="hist-fill" onclick="fill('${safe}')" title="Fill input">${h.text}</span>
       <div class="hist-div"></div>
       <span class="hist-replay" onclick="go('${safe}')" title="Re-run">
         ${REPLAY_ICON}
       </span>
     </div>`;
-  }).join('');
-}
+      }).join('');
+    }
 
-// ── Keyboard ──────────────────────────────────────────────────────────────
-document.getElementById('cmdIn').addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
-document.getElementById('apiField').addEventListener('keydown', e => { if (e.key === 'Enter') saveKey(); });
+    // ── Keyboard ──────────────────────────────────────────────────────────────
+    document.getElementById('cmdIn').addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+    document.getElementById('apiField').addEventListener('keydown', e => { if (e.key === 'Enter') saveKey(); });
 
-// ── Voice Input ───────────────────────────────────────────────────────────
+    // ── Voice Input ───────────────────────────────────────────────────────────
 
-let isListening = false;
-let recognition = null;
+    let isListening = false;
+    let recognition = null;
 
-function initVoice() {
-  // Check browser support
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    console.warn('[Voice] Web Speech API not supported in this browser');
-    document.getElementById('voiceBtn').style.display = 'none';
-    return false;
-  }
-  
-  recognition = new SpeechRecognition();
-  recognition.continuous = false;
-  recognition.interimResults = true;
-  recognition.language = 'en-US';
-  
-  recognition.onstart = () => {
-    isListening = true;
-    const btn = document.getElementById('voiceBtn');
-    btn.textContent = '🎤 Listening...';
-    btn.style.backgroundColor = 'var(--accent)';
-    btn.style.color = '#090909';
-  };
-  
-  recognition.onresult = (event) => {
-    let transcript = '';
-    let interim = '';
-    
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-      const t = event.results[i][0].transcript;
-      if (event.results[i].isFinal) {
-        transcript += t + ' ';
+    function initVoice() {
+      // Check browser support
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        console.warn('[Voice] Web Speech API not supported in this browser');
+        document.getElementById('voiceBtn').style.display = 'none';
+        return false;
+      }
+
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.language = 'en-US';
+
+      recognition.onstart = () => {
+        isListening = true;
+        const btn = document.getElementById('voiceBtn');
+        btn.textContent = '🎤 Listening...';
+        btn.style.backgroundColor = 'var(--accent)';
+        btn.style.color = '#090909';
+      };
+
+      recognition.onresult = (event) => {
+        let transcript = '';
+        let interim = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const t = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            transcript += t + ' ';
+          } else {
+            interim += t;
+          }
+        }
+
+        if (transcript) {
+          document.getElementById('cmdIn').value = transcript.trim();
+        }
+
+        if (interim) {
+          document.getElementById('cmdIn').placeholder = interim;
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.error('[Voice] Error:', event.error);
+        const btn = document.getElementById('voiceBtn');
+        btn.textContent = '🎤';
+        btn.style.backgroundColor = '';
+        btn.style.color = '';
+        isListening = false;
+      };
+
+      recognition.onend = () => {
+        const btn = document.getElementById('voiceBtn');
+        btn.textContent = '🎤';
+        btn.style.backgroundColor = '';
+        btn.style.color = '';
+        isListening = false;
+      };
+
+      return true;
+    }
+
+    function toggleVoice() {
+      if (!recognition) {
+        if (!initVoice()) {
+          alert('Web Speech API not supported in your browser. Try Chrome or Edge.');
+          return;
+        }
+      }
+
+      if (isListening) {
+        recognition.stop();
       } else {
-        interim += t;
+        document.getElementById('cmdIn').value = '';
+        recognition.start();
       }
     }
-    
-    if (transcript) {
-      document.getElementById('cmdIn').value = transcript.trim();
-    }
-    
-    if (interim) {
-      document.getElementById('cmdIn').placeholder = interim;
-    }
-  };
-  
-  recognition.onerror = (event) => {
-    console.error('[Voice] Error:', event.error);
-    const btn = document.getElementById('voiceBtn');
-    btn.textContent = '🎤';
-    btn.style.backgroundColor = '';
-    btn.style.color = '';
-    isListening = false;
-  };
-  
-  recognition.onend = () => {
-    const btn = document.getElementById('voiceBtn');
-    btn.textContent = '🎤';
-    btn.style.backgroundColor = '';
-    btn.style.color = '';
-    isListening = false;
-  };
-  
-  return true;
-}
 
-function toggleVoice() {
-  if (!recognition) {
-    if (!initVoice()) {
-      alert('Web Speech API not supported in your browser. Try Chrome or Edge.');
-      return;
-    }
-  }
-  
-  if (isListening) {
-    recognition.stop();
-  } else {
-    document.getElementById('cmdIn').value = '';
-    recognition.start();
-  }
-}
-
-// Initialize voice on page load
-window.addEventListener('DOMContentLoaded', () => {
-  initVoice();
-});
-</script>
+    // Initialize voice on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      initVoice();
+    });
+  </script>
 </body>
+
 </html>
