@@ -1051,6 +1051,30 @@
 
     let lastAction = 'default';
 
+    function drawArm(d){
+      var L1=80,L2=55,cx=140,cy=100;
+      var x=Math.min(d*1.8,160),y=40;
+      var cos2=(x*x+y*y-L1*L1-L2*L2)/(2*L1*L2);
+      if(Math.abs(cos2)>1)return;
+      var t2=Math.acos(cos2);
+      var t1=Math.atan2(y,x)-Math.atan2(L2*Math.sin(t2),L1+L2*Math.cos(t2));
+      var x1=cx+L1*Math.cos(t1),y1=cy-L1*Math.sin(t1);
+      var x2=x1+L2*Math.cos(t1+t2),y2=y1-L2*Math.sin(t1+t2);
+      var e=document.getElementById.bind(document);
+      if(!e("ogL1"))return;
+      e("ogL1").setAttribute("x2",x1.toFixed(1));
+      e("ogL1").setAttribute("y2",y1.toFixed(1));
+      e("ogL2").setAttribute("x1",x1.toFixed(1));
+      e("ogL2").setAttribute("y1",y1.toFixed(1));
+      e("ogL2").setAttribute("x2",x2.toFixed(1));
+      e("ogL2").setAttribute("y2",y2.toFixed(1));
+      e("ogElbow").setAttribute("cx",x1.toFixed(1));
+      e("ogElbow").setAttribute("cy",y1.toFixed(1));
+      e("ogTip").setAttribute("cx",x2.toFixed(1));
+      e("ogTip").setAttribute("cy",y2.toFixed(1));
+      e("ogInfo").textContent="J1:"+(t1*180/Math.PI).toFixed(1)+"  J2:"+(t2*180/Math.PI).toFixed(1)+"  dist:"+d+"cm";
+    }
+
     function renderSuggestions(action) {
       lastAction = action || 'default';
       const chips = document.getElementById('suggChips');
@@ -1157,33 +1181,7 @@
           <circle id="ogTip" cx="270" cy="100" r="4" fill="#ff5a4a"/>
           <text id="ogInfo" x="8" y="18" fill="#555" font-size="10" font-family="monospace">awaiting command</text>
         </svg>
-        <script>
-        (function(){
-          function drawArm(d){
-            var L1=80,L2=55,cx=140,cy=100;
-            var x=Math.min(d*1.8,160),y=40;
-            var cos2=(x*x+y*y-L1*L1-L2*L2)/(2*L1*L2);
-            if(Math.abs(cos2)>1)return;
-            var t2=Math.acos(cos2);
-            var t1=Math.atan2(y,x)-Math.atan2(L2*Math.sin(t2),L1+L2*Math.cos(t2));
-            var x1=cx+L1*Math.cos(t1),y1=cy-L1*Math.sin(t1);
-            var x2=x1+L2*Math.cos(t1+t2),y2=y1-L2*Math.sin(t1+t2);
-            document.getElementById("ogL1").setAttribute("x2",x1.toFixed(1));
-            document.getElementById("ogL1").setAttribute("y2",y1.toFixed(1));
-            document.getElementById("ogL2").setAttribute("x1",x1.toFixed(1));
-            document.getElementById("ogL2").setAttribute("y1",y1.toFixed(1));
-            document.getElementById("ogL2").setAttribute("x2",x2.toFixed(1));
-            document.getElementById("ogL2").setAttribute("y2",y2.toFixed(1));
-            document.getElementById("ogElbow").setAttribute("cx",x1.toFixed(1));
-            document.getElementById("ogElbow").setAttribute("cy",y1.toFixed(1));
-            document.getElementById("ogTip").setAttribute("cx",x2.toFixed(1));
-            document.getElementById("ogTip").setAttribute("cy",y2.toFixed(1));
-            document.getElementById("ogInfo").textContent="J1:"+( t1*180/Math.PI).toFixed(1)+"  J2:"+(t2*180/Math.PI).toFixed(1)+"  dist:"+d+"cm";
-          }
-          window.drawArm=drawArm;
-        })();
-        drawArm(${cmd.distance_cm ?? 10});
-        </script>
+        // arm updated via drawArm()
       </div>
     </div>
     <div class="card" style="animation-delay:.05s">
@@ -1289,6 +1287,7 @@
         if (cmd.action && cmd.action !== 'unknown') {
           const execResult = await callExecute(cmd);
           out.innerHTML = renderResult(cmd, execResult);
+        requestAnimationFrame(() => drawArm(cmd.distance_cm ?? 10));
 
           requestAnimationFrame(() => setTimeout(() => {
             const f = document.getElementById('cFill');
