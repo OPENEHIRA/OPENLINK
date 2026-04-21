@@ -1145,18 +1145,44 @@
     }
 
     async function callParse(text) {
-      try {
-        const response = await fetch('/api/groq-parse', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ command: text, api_key: apiKey })
-        });
-        const parsed = await response.json();
-        return parsed;
-      } catch(e) {
-        console.error('Parse error:', e);
-        return { action: 'move', direction: 'forward', distance_cm: 10, confidence: 0.5, raw: text };
+      // Client-side parser - extracts distance from command text
+      const t = text.toLowerCase();
+
+      // Extract number from text
+      const numMatch = t.match(/(\d+\.?\d*)\s*cm/);
+      const distance = numMatch ? parseFloat(numMatch[1]) : null;
+
+      // Detect action
+      let action = 'move';
+      if (t.includes('grab') || t.includes('grip') || t.includes('pick')) action = 'grab';
+      else if (t.includes('release') || t.includes('drop') || t.includes('open')) action = 'release';
+      else if (t.includes('rotate') || t.includes('turn') || t.includes('spin')) action = 'rotate';
+      else if (t.includes('stop') || t.includes('halt')) action = 'stop';
+
+      // Detect direction
+      let direction = 'forward';
+      if (t.includes('back') || t.includes('backward')) direction = 'backward';
+      else if (t.includes('left')) direction = 'left';
+      else if (t.includes('right')) direction = 'right';
+      else if (t.includes('up')) direction = 'up';
+      else if (t.includes('down')) direction = 'down';
+
+      // Detect distance from words if no number found
+      let distance_cm = distance;
+      if (!distance_cm) {
+        if (t.includes('far') || t.includes('lot') || t.includes('much')) distance_cm = 50;
+        else if (t.includes('little') || t.includes('bit') || t.includes('slightly')) distance_cm = 5;
+        else if (t.includes('medium') || t.includes('some')) distance_cm = 20;
+        else distance_cm = 10;
       }
+
+      return {
+        action: action,
+        direction: direction,
+        distance_cm: distance_cm,
+        confidence: 0.95,
+        raw: text
+      };
     }
 
     async function callExecute(parsed) {
