@@ -225,15 +225,12 @@ async def api_speech_status_endpoint():
 # Serve Frontend
 @app.get("/")
 async def serve_frontend():
-    return FileResponse("frontend/dist/index.html")
+    return FileResponse("index.html")
 
 # Fallback for SPA routing if needed
 @app.get("/{full_path:path}")
 async def serve_static(full_path: str):
-    path = os.path.join("frontend/dist", full_path)
-    if os.path.exists(path):
-        return FileResponse(path)
-    return FileResponse("frontend/dist/index.html")
+    return FileResponse("index.html")
 
 if __name__ == "__main__":
     uvicorn.run("server:socket_app", host="0.0.0.0", port=5000, reload=True)

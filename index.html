@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenGuy / OpenClaw Robot Control</title>
+  
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Vue 3 via CDN -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  
+  <!-- Socket.IO -->
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            bg: '#0c0c0e',
+            surface: '#131316',
+            'surface-2': '#18181d',
+            border: 'rgba(255, 255, 255, 0.055)',
+            'border-md': 'rgba(255, 255, 255, 0.09)',
+            text: '#ededf0',
+            'text-2': 'rgba(237, 237, 240, 0.48)',
+            'text-3': 'rgba(237, 237, 240, 0.22)',
+            accent: '#a8ff78',
+            'accent-2': '#78ffd6',
+            'accent-dim': 'rgba(168, 255, 120, 0.07)',
+            'red-main': '#ff5a4a'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #0c0c0e;
+      color: #ededf0;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      top: -20vh;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 70vw;
+      height: 60vh;
+      background: radial-gradient(ellipse, rgba(168, 255, 120, 0.035) 0%, transparent 65%);
+      pointer-events: none;
+      z-index: -1;
+    }
+    .glass-panel {
+      background: rgba(19, 19, 22, 0.6);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.055);
+    }
+    .animate-spin-slow {
+      animation: spin 2s linear infinite;
+    }
+    [v-cloak] { display: none; }
+  </style>
+</head>
+<body class="min-h-screen p-8 max-w-4xl mx-auto flex flex-col gap-8">
+  <div id="app" v-cloak class="flex flex-col gap-8 h-full">
+    
+    <!-- Header -->
+    <header class="flex flex-col md:flex-row justify-between md:items-center gap-4 pb-4 border-b border-border">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-accent to-accent-2 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(168,255,120,0.3)]">
+          🦾
+        </div>
+        <h1 class="text-xl font-semibold tracking-tight">OpenGuy / OpenClaw</h1>
+      </div>
+      
+      <!-- Backend URL Input for Vercel Hosting -->
+      <div class="flex items-center gap-3 text-xs">
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border font-mono">
+          <i data-lucide="link" class="w-3 h-3 text-text-3"></i>
+          <input 
+            v-model="backendUrl" 
+            @change="connectSocket"
+            placeholder="Backend URL (e.g. http://localhost:5000)"
+            class="bg-transparent border-none outline-none text-text w-48 placeholder-text-3"
+          />
+        </div>
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border font-mono">
+          <div :class="['w-2 h-2 rounded-full', isConnected ? 'bg-accent shadow-[0_0_8px_#a8ff78]' : 'bg-red-main']"></div>
+          {{ isConnected ? 'SYSTEM LIVE' : 'OFFLINE' }}
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      
+      <!-- Left Col -->
+      <div class="lg:col-span-2 flex flex-col gap-6">
+        <section class="text-center py-6">
+          <h2 class="text-4xl font-light tracking-tight mb-3">
+            Natural <strong class="font-semibold bg-gradient-to-r from-accent to-accent-2 text-transparent bg-clip-text">Robot Control</strong>
+          </h2>
+          <p class="text-text-2 text-sm max-w-md mx-auto">
+            Type an instruction in plain English. The AI parser will translate it into deterministic robotic actions.
+          </p>
+        </section>
+
+        <!-- Command Input -->
+        <div class="glass-panel p-2 rounded-2xl flex items-center gap-3 focus-within:border-accent/40 focus-within:shadow-[0_0_30px_rgba(168,255,120,0.07)] transition-all">
+          <i data-lucide="terminal" class="text-text-3 ml-3 w-5 h-5"></i>
+          <input 
+            class="flex-1 bg-transparent border-none outline-none text-text font-mono py-3 placeholder-text-3"
+            placeholder="e.g. Move forward 10cm and rotate left..."
+            v-model="command"
+            @keydown.enter="executeCommand"
+            :disabled="loading"
+          />
+          <button 
+            @click="executeCommand"
+            :disabled="loading || !command.trim()"
+            class="bg-accent text-black px-6 py-3 rounded-xl font-semibold text-sm hover:shadow-[0_0_20px_rgba(168,255,120,0.2)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <template v-if="loading">
+              <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
+            </template>
+            <template v-else>
+              Execute <i data-lucide="send" class="w-4 h-4"></i>
+            </template>
+          </button>
+        </div>
+
+        <!-- History -->
+        <div class="flex flex-col gap-4 mt-4">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-mono text-text-3 tracking-widest uppercase">Execution Log</span>
+            <button @click="clearHistory" class="text-xs font-mono text-text-3 hover:text-red-main transition-colors flex items-center gap-1">
+              <i data-lucide="trash-2" class="w-3 h-3"></i> Clear
+            </button>
+          </div>
+
+          <div class="flex flex-col gap-3">
+            <div v-if="history.length === 0" class="text-center py-10 border border-dashed border-border rounded-xl text-text-3 font-mono text-sm">
+              No commands yet.
+            </div>
+            
+            <div v-for="(item, idx) in history" :key="idx" class="glass-panel p-4 rounded-xl flex flex-col gap-3 transition-all">
+              <div class="flex justify-between items-start">
+                <span class="font-mono text-text text-sm">"{{ item.command }}"</span>
+                <span v-if="item.parsed && item.parsed.confidence" class="text-xs font-mono px-2 py-1 bg-surface-2 rounded text-accent border border-border">
+                  {{ Math.round(item.parsed.confidence * 100) }}% Conf
+                </span>
+              </div>
+              <div class="flex flex-wrap gap-2 font-mono text-xs text-text-3" v-if="item.parsed">
+                <span class="text-accent-2">ACT: {{ item.parsed.action }}</span>
+                <span v-if="item.parsed.direction">DIR: {{ item.parsed.direction }}</span>
+                <span v-if="item.parsed.distance_cm">DIST: {{ item.parsed.distance_cm }}cm</span>
+                <span v-if="item.parsed.angle_deg">ANG: {{ item.parsed.angle_deg }}&deg;</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Col -->
+      <div class="flex flex-col gap-4">
+        <!-- Status -->
+        <div class="glass-panel p-5 rounded-2xl flex flex-col gap-4">
+          <h3 class="text-xs font-mono text-text-3 tracking-widest uppercase flex items-center gap-2">
+            <i data-lucide="cpu" class="w-4 h-4"></i> Hardware Status
+          </h3>
+          
+          <div v-if="status" class="flex flex-col gap-3 font-mono text-sm text-text-2">
+            <div class="flex justify-between">
+              <span>Connection:</span>
+              <span :class="status.connected ? 'text-accent' : 'text-red-main'">
+                {{ status.connected ? "Active" : "Disconnected" }}
+              </span>
+            </div>
+            <div class="flex justify-between">
+              <span>Backend:</span>
+              <span class="text-text">{{ status.backend }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span>X Coord:</span>
+              <span class="text-accent-2">{{ status.position?.x?.toFixed(2) }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Y Coord:</span>
+              <span class="text-accent-2">{{ status.position?.y?.toFixed(2) }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Z Coord:</span>
+              <span class="text-accent-2">{{ status.position?.z?.toFixed(2) }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Gripper:</span>
+              <span class="text-text">{{ status.gripper_state }}</span>
+            </div>
+          </div>
+          <div v-else class="text-text-3 font-mono text-sm animate-pulse">Waiting for telemetry...</div>
+        </div>
+        
+        <!-- SVG Vis -->
+        <div class="glass-panel p-5 rounded-2xl flex flex-col gap-4">
+           <h3 class="text-xs font-mono text-text-3 tracking-widest uppercase flex items-center gap-2">
+            <i data-lucide="info" class="w-4 h-4"></i> Workspace SVG
+          </h3>
+          <div class="aspect-square bg-surface border border-border rounded-xl flex items-center justify-center overflow-hidden p-2">
+            <img :src="backendUrl + '/api/visualize'" alt="Robot Workspace" class="w-full h-full object-contain filter invert opacity-80 mix-blend-screen" />
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const { createApp, ref, onMounted, nextTick } = Vue;
+
+    createApp({
+      setup() {
+        // Auto-detect if we're on Vercel vs local
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const defaultBackend = isLocal ? window.location.origin : 'http://localhost:5000'; // Default to localhost if hosted
+        
+        const backendUrl = ref(defaultBackend);
+        const command = ref('');
+        const history = ref([]);
+        const status = ref(null);
+        const loading = ref(false);
+        const isConnected = ref(false);
+        let socket = null;
+
+        const updateIcons = () => {
+          nextTick(() => lucide.createIcons());
+        };
+
+        const connectSocket = () => {
+          if (socket) socket.disconnect();
+          
+          let url = backendUrl.value.replace(/\/$/, ""); // trim trailing slash
+          
+          try {
+            socket = io(url);
+            socket.on('connect', () => isConnected.value = true);
+            socket.on('disconnect', () => isConnected.value = false);
+            socket.on('status_update', (data) => {
+              status.value = data;
+            });
+          } catch(e) {
+            console.error("Socket error", e);
+            isConnected.value = false;
+          }
+        };
+
+        const loadHistory = async () => {
+          try {
+            let url = backendUrl.value.replace(/\/$/, "");
+            const res = await fetch(`${url}/api/history`);
+            const data = await res.json();
+            history.value = data.history || [];
+          } catch(e) {
+            console.error("Failed to load history", e);
+          }
+        };
+
+        const executeCommand = async () => {
+          if (!command.value.trim()) return;
+          loading.value = true;
+          let url = backendUrl.value.replace(/\/$/, "");
+          
+          try {
+            // Parse
+            const parseRes = await fetch(`${url}/api/parse`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ command: command.value })
+            });
+            
+            if(!parseRes.ok) throw new Error("API error during parse");
+            const parsed = await parseRes.json();
+            
+            if (!parsed.action || parsed.action === 'unknown') {
+              throw new Error("Could not understand command");
+            }
+
+            // Execute
+            const execRes = await fetch(`${url}/api/execute`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(parsed)
+            });
+            
+            if(!execRes.ok) throw new Error("Execution failed");
+            const executed = await execRes.json();
+            
+            history.value.unshift({
+              timestamp: new Date().toISOString(),
+              command: command.value,
+              parsed,
+              result: executed.result
+            });
+            
+            command.value = '';
+          } catch (err) {
+            console.error(err);
+            alert("Error: " + err.message);
+          } finally {
+            loading.value = false;
+            updateIcons();
+          }
+        };
+
+        const clearHistory = async () => {
+          try {
+            let url = backendUrl.value.replace(/\/$/, "");
+            await fetch(`${url}/api/history/clear`, { method: 'POST' });
+            history.value = [];
+          } catch(e) {
+            console.error(e);
+          }
+        };
+
+        onMounted(() => {
+          updateIcons();
+          connectSocket();
+          loadHistory();
+        });
+
+        return {
+          backendUrl,
+          command,
+          history,
+          status,
+          loading,
+          isConnected,
+          executeCommand,
+          clearHistory,
+          connectSocket
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
