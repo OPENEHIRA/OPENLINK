@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #0c0c0e;
+  --color-surface: #131316;
+  --color-surface-2: #18181d;
+  --color-border: rgba(255, 255, 255, 0.055);
+  --color-border-md: rgba(255, 255, 255, 0.09);
+  --color-border-hi: rgba(255, 255, 255, 0.15);
+  --color-text-main: #ededf0;
+  --color-text-2: rgba(237, 237, 240, 0.48);
+  --color-text-3: rgba(237, 237, 240, 0.22);
+  --color-accent: #a8ff78;
+  --color-accent-2: #78ffd6;
+  --color-accent-dim: rgba(168, 255, 120, 0.07);
+  --color-accent-glow: rgba(168, 255, 120, 0.20);
+  --color-red-main: #ff5a4a;
+  --color-red-dim: rgba(255, 90, 74, 0.08);
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text-main);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: -20vh;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70vw;
+  height: 60vh;
+  background: radial-gradient(ellipse, rgba(168, 255, 120, 0.035) 0%, transparent 65%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.glass-panel {
+  background: rgba(19, 19, 22, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--color-border);
+}

@@ -13,3 +13,5 @@ command_history.json
 
 # OS files
 .DS_Store
+command_history.db  
+node_modules/  
