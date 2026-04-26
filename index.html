@@ -206,11 +206,8 @@
               <i v-else data-lucide="copy" class="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity"></i>
             </button>
           </div>
-          <div class="p-6 overflow-x-auto bg-[#030303]">
-            <pre class="font-mono text-sm leading-relaxed text-text-muted"><code class="text-white">git clone <span class="text-[#888888]">https://github.com/OPENEHIRA/OpenGuy.git</span>
-cd <span class="text-[#888888]">OpenGuy</span>
-pip install <span class="text-[#888888]">-r requirements.txt</span>
-python <span class="text-[#888888]">server.py</span></code></pre>
+          <div class="p-6 overflow-x-auto bg-[#030303] custom-scrollbar">
+            <pre class="font-mono text-sm leading-relaxed text-text-muted whitespace-nowrap"><code class="text-white">git clone <span class="text-[#888888]">https://github.com/OPENEHIRA/OpenGuy.git</span> && cd <span class="text-[#888888]">OpenGuy</span> && pip install <span class="text-[#888888]">-r requirements.txt</span> && python <span class="text-[#888888]">server.py</span></code></pre>
           </div>
         </div>
       </section>
@@ -386,7 +383,7 @@ python <span class="text-[#888888]">server.py</span></code></pre>
         };
 
         const copyCode = () => {
-          const code = `git clone https://github.com/OPENEHIRA/OpenGuy.git\ncd OpenGuy\npip install -r requirements.txt\npython server.py`;
+          const code = `git clone https://github.com/OPENEHIRA/OpenGuy.git && cd OpenGuy && pip install -r requirements.txt && python server.py`;
           navigator.clipboard.writeText(code);
           copied.value = true;
           setTimeout(() => copied.value = false, 2000);
