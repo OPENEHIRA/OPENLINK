@@ -227,6 +227,12 @@ async def api_speech_status_endpoint():
 async def serve_frontend():
     return FileResponse("index.html")
 
+@app.get("/logo.png")
+async def serve_logo():
+    if os.path.exists("logo.png"):
+        return FileResponse("logo.png")
+    raise HTTPException(status_code=404, detail="Logo not found")
+
 # Fallback for SPA routing if needed
 @app.get("/{full_path:path}")
 async def serve_static(full_path: str):

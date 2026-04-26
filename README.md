@@ -1,5 +1,9 @@
 # OpenGuy
 
+<div align="center">
+  <img src="./logo.png" alt="OpenGuy Logo" width="300" style="border-radius: 10px;"/>
+</div>
+
 OpenGuy is an AI-powered robotics interface that uses Natural Language to deterministically control hardware via Python.
 
 ## Architecture
