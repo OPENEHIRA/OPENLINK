@@ -12,6 +12,13 @@ from sqlalchemy.orm import Session
 import socketio
 import uvicorn
 
+# Load .env file if it exists
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 from database import engine, get_db, Base
 import models
 from parser import parse
@@ -57,7 +64,24 @@ async def startup_event():
 async def api_parse(request: Request):
     data = await request.json()
     command_text = data.get("command", "").strip()
-    api_key = data.get("api_key", os.getenv("ANTHROPIC_API_KEY"))
+    
+    # Allow frontend to pass API key and model dynamically
+    api_key = data.get("api_key")
+    model = data.get("model")
+    provider = data.get("provider")
+    
+    if api_key and provider:
+        key_map = {
+            "groq": "GROQ_API_KEY",
+            "openai": "OPENAI_API_KEY",
+            "anthropic": "ANTHROPIC_API_KEY",
+            "gemini": "GEMINI_API_KEY"
+        }
+        env_name = key_map.get(provider.lower())
+        if env_name:
+            os.environ[env_name] = api_key
+    if model:
+        os.environ["LLM_MODEL"] = model
     if not command_text:
         raise HTTPException(status_code=400, detail="Empty command")
     try:
