@@ -422,23 +422,45 @@
                 <i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i> Initializing...
               </div>
             </div>
-            
-            <!-- 3D Robot Simulation -->
-            <div class="premium-panel p-6 flex flex-col gap-4">
-               <div class="flex justify-between items-center pb-3 border-b border-border">
-                 <h3 class="text-xs font-mono text-text-muted tracking-widest uppercase">
-                   3D Simulation
-                 </h3>
-                 <span class="text-[9px] font-mono px-2 py-0.5 border border-border text-green-400 rounded">LIVE</span>
-               </div>
-              <div id="sim3d" class="aspect-square bg-[#030303] border border-border rounded-lg overflow-hidden relative">
-              </div>
-              <div class="flex items-center gap-2 text-[10px] font-mono text-text-dim">
-                <i data-lucide="rotate-3d" class="w-3 h-3"></i>
-                Drag to orbit · Scroll to zoom
-              </div>
-            </div>
 
+          </div>
+        </div>
+      </section>
+
+      <!-- DIVIDER -->
+      <div class="w-full h-px bg-gradient-to-r from-transparent via-border to-transparent"></div>
+
+      <!-- 3D SIMULATION LAB -->
+      <section class="flex flex-col gap-6">
+        <div class="flex flex-col md:flex-row justify-between items-end gap-4">
+          <div>
+            <h2 class="font-display text-3xl font-light tracking-tight flex items-center gap-3">
+              <i data-lucide="box" class="w-6 h-6 text-text-muted"></i>
+              Simulation Lab
+            </h2>
+            <p class="text-text-muted text-sm mt-1 font-light">Select a robot template and watch it respond to your commands in real-time.</p>
+          </div>
+          <div class="flex gap-2">
+            <button v-for="t in robotTemplates" :key="t.id"
+              @click="switchRobot(t.id)"
+              :class="['px-4 py-2 rounded-lg text-[10px] font-mono tracking-wider uppercase transition-all border', 
+                activeRobot === t.id ? 'bg-white/10 text-white border-white/20' : 'bg-transparent text-text-dim border-border hover:text-text-muted hover:border-white/10']">
+              {{ t.name }}
+            </button>
+          </div>
+        </div>
+        <div class="premium-panel overflow-hidden">
+          <div class="flex justify-between items-center px-6 py-3 border-b border-border">
+            <div class="flex items-center gap-3">
+              <span class="text-[9px] font-mono px-2 py-0.5 border border-border text-green-400 rounded">LIVE</span>
+              <span class="text-xs font-mono text-text-muted">{{ robotTemplates.find(t => t.id === activeRobot)?.name }} · {{ robotTemplates.find(t => t.id === activeRobot)?.dof }}</span>
+            </div>
+            <div class="flex items-center gap-2 text-[10px] font-mono text-text-dim">
+              <i data-lucide="rotate-3d" class="w-3 h-3"></i>
+              Drag to orbit · Scroll to zoom
+            </div>
+          </div>
+          <div id="sim3d" style="width:100%; height:500px; background:#030303;">
           </div>
         </div>
       </section>
@@ -487,110 +509,127 @@
         // 3D Scene
         let scene, camera, renderer, controls;
         let robotBase, arm1, arm2, gripper;
+        const activeRobot = ref('arm');
+        const robotTemplates = ref([
+          { id: 'arm', name: '6-DOF Arm', dof: '6 Joints' },
+          { id: 'robodog', name: 'RoboDog', dof: '12 Joints' },
+          { id: 'drone', name: 'Drone', dof: '4 Rotors' },
+          { id: 'rover', name: 'Rover', dof: '6 Wheels' }
+        ]);
+
+        const switchRobot = (id) => {
+          activeRobot.value = id;
+          if (scene) { 
+            // Remove old robot parts
+            while(scene.children.length > 0) scene.remove(scene.children[0]);
+            buildScene();
+          }
+          nextTick(() => lucide.createIcons());
+        };
+
+        const metalMat = () => new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.9, roughness: 0.2 });
+        const accentMat = () => new THREE.MeshStandardMaterial({ color: 0x6366f1, metalness: 0.7, roughness: 0.3, emissive: 0x2225aa, emissiveIntensity: 0.3 });
+        const gripMat = () => new THREE.MeshStandardMaterial({ color: 0xec4899, metalness: 0.7, roughness: 0.3, emissive: 0x771144, emissiveIntensity: 0.3 });
+        const bodyMat = () => new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.8, roughness: 0.3 });
+
+        const buildScene = () => {
+          scene.add(new THREE.GridHelper(8, 20, 0x222222, 0x111111));
+          scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+          const kl = new THREE.DirectionalLight(0xffffff, 0.8); kl.position.set(3, 5, 3); scene.add(kl);
+          const al = new THREE.PointLight(0x6366f1, 1.5, 10); al.position.set(-2, 3, -2); scene.add(al);
+          const builders = { arm: buildArm, robodog: buildRoboDog, drone: buildDrone, rover: buildRover };
+          (builders[activeRobot.value] || buildArm)();
+        };
+
+        const buildArm = () => {
+          robotBase = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.6, 0.3, 32), accentMat());
+          robotBase.position.y = 0.15; scene.add(robotBase);
+          const j1 = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 16), metalMat()); j1.position.y = 0.3; robotBase.add(j1);
+          arm1 = new THREE.Group(); arm1.position.y = 0.3; robotBase.add(arm1);
+          arm1.add(Object.assign(new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.2, 0.12), metalMat()), { position: new THREE.Vector3(0, 0.6, 0) }));
+          const j2 = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 16), accentMat()); j2.position.y = 1.2; arm1.add(j2);
+          arm2 = new THREE.Group(); arm2.position.y = 1.2; arm1.add(arm2);
+          arm2.add(Object.assign(new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.9, 0.1), metalMat()), { position: new THREE.Vector3(0, 0.45, 0) }));
+          gripper = new THREE.Group(); gripper.position.y = 0.9; arm2.add(gripper);
+          const gl = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.25, 0.08), gripMat()); gl.position.set(-0.08, 0.12, 0); gripper.add(gl);
+          const gr = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.25, 0.08), gripMat()); gr.position.set(0.08, 0.12, 0); gripper.add(gr);
+        };
+
+        const buildRoboDog = () => {
+          robotBase = new THREE.Group(); scene.add(robotBase);
+          const body = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.3, 0.5), bodyMat()); body.position.y = 0.8; robotBase.add(body);
+          const head = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.25, 0.35), accentMat()); head.position.set(0.75, 0.95, 0); robotBase.add(head);
+          const eye1 = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 8), gripMat()); eye1.position.set(0.91, 1.0, 0.1); robotBase.add(eye1);
+          const eye2 = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 8), gripMat()); eye2.position.set(0.91, 1.0, -0.1); robotBase.add(eye2);
+          const legPositions = [[-0.4, 0, 0.25], [-0.4, 0, -0.25], [0.4, 0, 0.25], [0.4, 0, -0.25]];
+          arm1 = new THREE.Group(); robotBase.add(arm1);
+          legPositions.forEach(([x, y, z], i) => {
+            const upper = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.4, 0.08), metalMat()); upper.position.set(x, 0.6, z); arm1.add(upper);
+            const lower = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.35, 0.06), metalMat()); lower.position.set(x, 0.2, z); arm1.add(lower);
+            const foot = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), accentMat()); foot.position.set(x, 0.02, z); arm1.add(foot);
+          });
+          arm2 = arm1; gripper = arm1;
+        };
+
+        const buildDrone = () => {
+          robotBase = new THREE.Group(); scene.add(robotBase);
+          const frame = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.1, 0.4), bodyMat()); frame.position.y = 1.5; robotBase.add(frame);
+          const armPositions = [[0.5, 0, 0.5], [0.5, 0, -0.5], [-0.5, 0, 0.5], [-0.5, 0, -0.5]];
+          arm1 = new THREE.Group(); robotBase.add(arm1);
+          armPositions.forEach(([x, _, z]) => {
+            const dArm = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.04, 0.06), metalMat()); dArm.position.set(x / 2, 1.5, z / 2); dArm.rotation.y = Math.atan2(z, x); arm1.add(dArm);
+            const motor = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.08, 16), accentMat()); motor.position.set(x, 1.54, z); arm1.add(motor);
+            const blade = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.01, 0.06), gripMat()); blade.position.set(x, 1.6, z); blade.userData = { isRotor: true }; arm1.add(blade);
+          });
+          const cam = new THREE.Mesh(new THREE.SphereGeometry(0.08, 16, 16), accentMat()); cam.position.set(0, 1.42, 0); robotBase.add(cam);
+          arm2 = arm1; gripper = arm1;
+        };
+
+        const buildRover = () => {
+          robotBase = new THREE.Group(); scene.add(robotBase);
+          const chassis = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.25, 0.8), bodyMat()); chassis.position.y = 0.35; robotBase.add(chassis);
+          const top = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.2, 0.6), metalMat()); top.position.set(-0.2, 0.58, 0); robotBase.add(top);
+          const antenna = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.5, 8), accentMat()); antenna.position.set(-0.3, 0.85, 0.15); robotBase.add(antenna);
+          const dish = new THREE.Mesh(new THREE.SphereGeometry(0.08, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), gripMat()); dish.position.set(-0.3, 1.1, 0.15); robotBase.add(dish);
+          arm1 = new THREE.Group(); robotBase.add(arm1);
+          const wheelPositions = [[-0.5, 0.15, 0.45], [-0.5, 0.15, -0.45], [0.0, 0.15, 0.45], [0.0, 0.15, -0.45], [0.5, 0.15, 0.45], [0.5, 0.15, -0.45]];
+          wheelPositions.forEach(([x, y, z]) => {
+            const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.08, 16), accentMat()); wheel.position.set(x, y, z); wheel.rotation.x = Math.PI / 2; arm1.add(wheel);
+          });
+          arm2 = arm1; gripper = arm1;
+        };
 
         const init3D = () => {
           const container = document.getElementById('sim3d');
           if (!container) return;
           const w = container.clientWidth;
           const h = container.clientHeight || w;
-
-          scene = new THREE.Scene();
-          scene.background = new THREE.Color(0x030303);
-
-          camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
-          camera.position.set(4, 3, 4);
-
-          renderer = new THREE.WebGLRenderer({ antialias: true });
-          renderer.setSize(w, h);
-          renderer.setPixelRatio(window.devicePixelRatio);
+          scene = new THREE.Scene(); scene.background = new THREE.Color(0x030303);
+          camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100); camera.position.set(4, 3, 4);
+          renderer = new THREE.WebGLRenderer({ antialias: true }); renderer.setSize(w, h); renderer.setPixelRatio(window.devicePixelRatio);
           container.appendChild(renderer.domElement);
-
           controls = new THREE.OrbitControls(camera, renderer.domElement);
-          controls.enableDamping = true;
-          controls.dampingFactor = 0.05;
-          controls.autoRotate = true;
-          controls.autoRotateSpeed = 0.5;
-
-          // Ground grid
-          const grid = new THREE.GridHelper(8, 20, 0x222222, 0x111111);
-          scene.add(grid);
-
-          // Ambient light
-          scene.add(new THREE.AmbientLight(0xffffff, 0.3));
-          // Key light
-          const keyLight = new THREE.DirectionalLight(0xffffff, 0.8);
-          keyLight.position.set(3, 5, 3);
-          scene.add(keyLight);
-          // Accent light
-          const accentLight = new THREE.PointLight(0x6366f1, 1.5, 10);
-          accentLight.position.set(-2, 3, -2);
-          scene.add(accentLight);
-
-          const metalMat = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.9, roughness: 0.2 });
-          const accentMat = new THREE.MeshStandardMaterial({ color: 0x6366f1, metalness: 0.7, roughness: 0.3, emissive: 0x2225aa, emissiveIntensity: 0.3 });
-          const gripMat = new THREE.MeshStandardMaterial({ color: 0xec4899, metalness: 0.7, roughness: 0.3, emissive: 0x771144, emissiveIntensity: 0.3 });
-
-          // Base
-          robotBase = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.6, 0.3, 32), accentMat);
-          robotBase.position.y = 0.15;
-          scene.add(robotBase);
-
-          // Joint 1
-          const joint1 = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 16), metalMat);
-          joint1.position.y = 0.3;
-          robotBase.add(joint1);
-
-          // Arm 1
-          arm1 = new THREE.Group();
-          arm1.position.y = 0.3;
-          robotBase.add(arm1);
-          const arm1Mesh = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.2, 0.12), metalMat);
-          arm1Mesh.position.y = 0.6;
-          arm1.add(arm1Mesh);
-
-          // Joint 2
-          const joint2 = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 16), accentMat);
-          joint2.position.y = 1.2;
-          arm1.add(joint2);
-
-          // Arm 2
-          arm2 = new THREE.Group();
-          arm2.position.y = 1.2;
-          arm1.add(arm2);
-          const arm2Mesh = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.9, 0.1), metalMat);
-          arm2Mesh.position.y = 0.45;
-          arm2.add(arm2Mesh);
-
-          // Gripper
-          gripper = new THREE.Group();
-          gripper.position.y = 0.9;
-          arm2.add(gripper);
-          const gripL = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.25, 0.08), gripMat);
-          gripL.position.set(-0.08, 0.12, 0);
-          gripper.add(gripL);
-          const gripR = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.25, 0.08), gripMat);
-          gripR.position.set(0.08, 0.12, 0);
-          gripper.add(gripR);
-
+          controls.enableDamping = true; controls.dampingFactor = 0.05; controls.autoRotate = true; controls.autoRotateSpeed = 0.5;
+          buildScene();
           const animate = () => {
             requestAnimationFrame(animate);
             controls.update();
-            // Subtle idle animation
             const t = Date.now() * 0.001;
-            if (arm1) arm1.rotation.z = Math.sin(t * 0.5) * 0.1;
-            if (arm2) arm2.rotation.z = Math.sin(t * 0.7 + 1) * 0.15;
+            if (activeRobot.value === 'arm') {
+              if (arm1) arm1.rotation.z = Math.sin(t * 0.5) * 0.1;
+              if (arm2) arm2.rotation.z = Math.sin(t * 0.7 + 1) * 0.15;
+            } else if (activeRobot.value === 'robodog') {
+              if (arm1) arm1.children.forEach((c, i) => { if (i % 3 === 0) c.position.y = 0.6 + Math.sin(t * 3 + i) * 0.03; });
+            } else if (activeRobot.value === 'drone') {
+              if (robotBase) robotBase.position.y = Math.sin(t * 2) * 0.1;
+              if (arm1) arm1.children.forEach(c => { if (c.userData.isRotor) c.rotation.y += 0.3; });
+            } else if (activeRobot.value === 'rover') {
+              if (arm1) arm1.children.forEach(c => { c.rotation.z += 0.02; });
+            }
             renderer.render(scene, camera);
           };
           animate();
-
-          // Resize handler
-          const ro = new ResizeObserver(() => {
-            const nw = container.clientWidth;
-            const nh = container.clientHeight || nw;
-            camera.aspect = nw / nh;
-            camera.updateProjectionMatrix();
-            renderer.setSize(nw, nh);
-          });
+          const ro = new ResizeObserver(() => { const nw = container.clientWidth; const nh = container.clientHeight || nw; camera.aspect = nw / nh; camera.updateProjectionMatrix(); renderer.setSize(nw, nh); });
           ro.observe(container);
         };
 
@@ -667,11 +706,30 @@
             }
 
             // Animate 3D robot based on parsed command
-            if (arm1 && parsed.action === 'move') {
-              arm1.rotation.z += (parsed.direction === 'forward' ? 0.3 : -0.3);
-            }
-            if (arm2 && parsed.action === 'rotate') {
-              robotBase.rotation.y += (parsed.direction === 'right' ? 0.5 : -0.5);
+            if (robotBase) {
+              const a = parsed.action;
+              const d = parsed.distance_cm || 10;
+              if (a === 'move') {
+                const dir = parsed.direction || 'forward';
+                const delta = d * 0.01;
+                if (dir === 'forward') robotBase.position.x += delta;
+                else if (dir === 'backward') robotBase.position.x -= delta;
+                else if (dir === 'left') robotBase.position.z -= delta;
+                else if (dir === 'right') robotBase.position.z += delta;
+                else if (dir === 'up') robotBase.position.y += delta;
+                else if (dir === 'down') robotBase.position.y -= delta;
+                if (arm1 && activeRobot.value === 'arm') arm1.rotation.z += 0.3;
+              } else if (a === 'rotate') {
+                const angle = (parsed.angle_deg || 45) * Math.PI / 180;
+                robotBase.rotation.y += (parsed.direction === 'left' ? -angle : angle);
+              } else if (a === 'grab' && gripper && activeRobot.value === 'arm') {
+                gripper.children.forEach((c, i) => { c.position.x = i === 0 ? -0.03 : 0.03; });
+              } else if (a === 'release' && gripper && activeRobot.value === 'arm') {
+                gripper.children.forEach((c, i) => { c.position.x = i === 0 ? -0.12 : 0.12; });
+              } else if (a === 'stop') {
+                robotBase.position.set(0, activeRobot.value === 'drone' ? 0 : 0.15, 0);
+                robotBase.rotation.set(0, 0, 0);
+              }
             }
 
             const execRes = await fetch(`${url}/api/execute`, {
@@ -721,7 +779,8 @@
           backendUrl, command, history, status, loading,
           isConnected, copied, activeTab,
           showConfig, showKey, aiProvider, aiApiKey, aiModel, hasApiKey,
-          saveConfig, copyCode, executeCommand, clearHistory, connectSocket
+          activeRobot, robotTemplates,
+          saveConfig, copyCode, executeCommand, clearHistory, connectSocket, switchRobot
         };
       }
     }).mount('#app');

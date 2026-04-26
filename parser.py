@@ -15,11 +15,16 @@ from typing import Optional, Dict, Any
 # ── Parser Constants ─────────────────────────────────────────────────────────
 
 ACTION_MAPPINGS = {
-    "stop": [r"stop", r"halt", r"freeze", r"pause"],
-    "release": [r"release", r"drop", r"let\s+go", r"open"],
-    "move": [r"move", r"go", r"walk", r"travel", r"advance", r"steps?", r"glide"],
-    "rotate": [r"rotate", r"turn", r"spin", r"pivot", r"swing"],
-    "grab": [r"grab", r"grip", r"pick", r"grasp", r"take", r"hold"]
+    "stop": [r"stop", r"halt", r"freeze", r"pause", r"wait", r"stay", r"hold\s+position", r"brake", r"cease", r"standby"],
+    "release": [r"release", r"drop", r"let\s+go", r"open\s+grip", r"ungrip", r"put\s+down", r"place", r"set\s+down", r"deposit", r"leave"],
+    "move": [r"move", r"go", r"walk", r"travel", r"advance", r"steps?", r"glide", r"run", r"sprint", r"dash",
+             r"crawl", r"slide", r"shift", r"drive", r"navigate", r"proceed", r"march", r"head", r"push",
+             r"pull", r"drag", r"fly", r"jump", r"leap", r"hop", r"roll", r"cruise", r"drift", r"charge",
+             r"rush", r"hurry", r"scoot", r"inch", r"nudge", r"creep", r"jog", r"trot", r"gallop", r"approach", r"retreat"],
+    "rotate": [r"rotate", r"turn", r"spin", r"pivot", r"swing", r"yaw", r"twist", r"face", r"look",
+               r"orient", r"aim", r"point", r"steer", r"swivel", r"revolve", r"roll\s+over", r"bank", r"veer"],
+    "grab": [r"grab", r"grip", r"pick", r"grasp", r"take", r"hold", r"catch", r"seize", r"snatch",
+             r"clamp", r"pinch", r"latch", r"secure", r"collect", r"fetch", r"acquire", r"lift", r"raise"]
 }
 
 DIRECTION_MAPPINGS = {
@@ -78,6 +83,17 @@ def _regex_parse(text: str) -> Dict[str, Any]:
             result["confidence"] = 0.5
             break
     
+    # 1b. Fallback: if no action detected but has a number or direction, assume "move"
+    if result["action"] == "unknown":
+        has_number = bool(re.search(r'\d+', text))
+        has_direction = any(
+            re.search(r'\b(' + '|'.join(syns) + r')\b', text)
+            for syns in DIRECTION_MAPPINGS.values()
+        )
+        if has_number or has_direction:
+            result["action"] = "move"
+            result["confidence"] = 0.4
+
     if result["action"] == "stop":
         result["confidence"] = 0.9
         return result
