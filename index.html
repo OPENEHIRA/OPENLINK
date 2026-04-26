@@ -1,12 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OpenGuy / OpenClaw Robot Control</title>
+  <title>OpenGuy Robotics</title>
   
   <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -22,25 +24,34 @@
 
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'system-ui', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
+            sans: ['"Space Grotesk"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
           },
           colors: {
-            bg: '#0c0c0e',
-            surface: '#131316',
-            'surface-2': '#18181d',
-            border: 'rgba(255, 255, 255, 0.055)',
-            'border-md': 'rgba(255, 255, 255, 0.09)',
-            text: '#ededf0',
-            'text-2': 'rgba(237, 237, 240, 0.48)',
-            'text-3': 'rgba(237, 237, 240, 0.22)',
-            accent: '#a8ff78',
-            'accent-2': '#78ffd6',
-            'accent-dim': 'rgba(168, 255, 120, 0.07)',
-            'red-main': '#ff5a4a'
+            bg: '#030305',
+            panel: 'rgba(10, 10, 15, 0.65)',
+            border: 'rgba(0, 243, 255, 0.15)',
+            'border-hover': 'rgba(0, 243, 255, 0.4)',
+            text: '#ffffff',
+            'text-muted': 'rgba(255, 255, 255, 0.6)',
+            cyan: {
+              DEFAULT: '#00f3ff',
+              dim: 'rgba(0, 243, 255, 0.1)'
+            },
+            purple: {
+              DEFAULT: '#b500ff',
+              dim: 'rgba(181, 0, 255, 0.1)'
+            },
+            danger: '#ff2a2a'
+          },
+          boxShadow: {
+            'neon-cyan': '0 0 20px rgba(0, 243, 255, 0.3), inset 0 0 10px rgba(0, 243, 255, 0.1)',
+            'neon-purple': '0 0 20px rgba(181, 0, 255, 0.3), inset 0 0 10px rgba(181, 0, 255, 0.1)',
+            'btn-cyan': '0 0 15px rgba(0, 243, 255, 0.5)',
           }
         }
       }
@@ -49,182 +60,309 @@
 
   <style>
     body {
-      background-color: #0c0c0e;
-      color: #ededf0;
+      background-color: #030305;
+      color: #ffffff;
+      overflow-x: hidden;
     }
+
+    /* Animated Grid Background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: 
+        linear-gradient(to right, rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+      z-index: -2;
+      pointer-events: none;
+      transform: perspective(500px) rotateX(60deg) scale(2) translateY(-100px);
+      animation: gridMove 20s linear infinite;
+    }
+
+    @keyframes gridMove {
+      0% { background-position: 0 0; }
+      100% { background-position: 0 50px; }
+    }
+
+    /* Ambient Glows */
     body::after {
       content: '';
       position: fixed;
-      top: -20vh;
+      top: 0;
       left: 50%;
       transform: translateX(-50%);
-      width: 70vw;
-      height: 60vh;
-      background: radial-gradient(ellipse, rgba(168, 255, 120, 0.035) 0%, transparent 65%);
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(circle at 20% 30%, rgba(0, 243, 255, 0.08) 0%, transparent 40%),
+                  radial-gradient(circle at 80% 70%, rgba(181, 0, 255, 0.08) 0%, transparent 40%);
+      z-index: -1;
       pointer-events: none;
+    }
+
+    /* UI Panels */
+    .glass-panel {
+      background: var(--bg-panel, rgba(10, 10, 15, 0.65));
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-color, rgba(0, 243, 255, 0.15));
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+    
+    .glass-panel:hover {
+      border-color: rgba(0, 243, 255, 0.4);
+      box-shadow: 0 0 25px rgba(0, 243, 255, 0.1);
+    }
+
+    /* Hexagon clip path for buttons */
+    .btn-cyber {
+      position: relative;
+      background: transparent;
+      color: #00f3ff;
+      border: 1px solid #00f3ff;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      z-index: 1;
+    }
+
+    .btn-cyber::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(0, 243, 255, 0.4), transparent);
+      transition: all 0.4s ease;
       z-index: -1;
     }
-    .glass-panel {
-      background: rgba(19, 19, 22, 0.6);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.055);
+
+    .btn-cyber:hover::before {
+      left: 100%;
     }
-    .animate-spin-slow {
-      animation: spin 2s linear infinite;
+
+    .btn-cyber:hover {
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
+      background: rgba(0, 243, 255, 0.1);
     }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #030305; }
+    ::-webkit-scrollbar-thumb { background: rgba(0, 243, 255, 0.2); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0, 243, 255, 0.5); }
+
     [v-cloak] { display: none; }
   </style>
 </head>
-<body class="min-h-screen p-8 max-w-4xl mx-auto flex flex-col gap-8">
-  <div id="app" v-cloak class="flex flex-col gap-8 h-full">
+<body class="min-h-screen text-text font-sans antialiased selection:bg-cyan selection:text-black">
+  <div id="app" v-cloak class="flex flex-col min-h-screen">
     
     <!-- Header -->
-    <header class="flex flex-col md:flex-row justify-between md:items-center gap-4 pb-4 border-b border-border">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-accent to-accent-2 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(168,255,120,0.3)]">
-          🦾
-        </div>
-        <h1 class="text-xl font-semibold tracking-tight">OpenGuy / OpenClaw</h1>
-      </div>
-      
-      <!-- Backend URL Input for Vercel Hosting -->
-      <div class="flex items-center gap-3 text-xs">
-        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border font-mono">
-          <i data-lucide="link" class="w-3 h-3 text-text-3"></i>
-          <input 
-            v-model="backendUrl" 
-            @change="connectSocket"
-            placeholder="Backend URL (e.g. http://localhost:5000)"
-            class="bg-transparent border-none outline-none text-text w-48 placeholder-text-3"
-          />
-        </div>
-        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border font-mono">
-          <div :class="['w-2 h-2 rounded-full', isConnected ? 'bg-accent shadow-[0_0_8px_#a8ff78]' : 'bg-red-main']"></div>
-          {{ isConnected ? 'SYSTEM LIVE' : 'OFFLINE' }}
+    <header class="w-full border-b border-border/50 bg-black/40 backdrop-blur-md sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded bg-cyan-dim border border-cyan flex items-center justify-center text-2xl shadow-neon-cyan">
+            <i data-lucide="cpu" class="text-cyan w-6 h-6"></i>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold tracking-widest uppercase text-transparent bg-clip-text bg-gradient-to-r from-cyan to-purple">OpenGuy</h1>
+            <p class="text-[10px] font-mono tracking-widest text-cyan uppercase">Robotics Core</p>
+          </div>
         </div>
       </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <main class="flex-1 w-full max-w-7xl mx-auto px-6 py-12 flex flex-col gap-16">
       
-      <!-- Left Col -->
-      <div class="lg:col-span-2 flex flex-col gap-6">
-        <section class="text-center py-6">
-          <h2 class="text-4xl font-light tracking-tight mb-3">
-            Natural <strong class="font-semibold bg-gradient-to-r from-accent to-accent-2 text-transparent bg-clip-text">Robot Control</strong>
-          </h2>
-          <p class="text-text-2 text-sm max-w-md mx-auto">
-            Type an instruction in plain English. The AI parser will translate it into deterministic robotic actions.
-          </p>
-        </section>
-
-        <!-- Command Input -->
-        <div class="glass-panel p-2 rounded-2xl flex items-center gap-3 focus-within:border-accent/40 focus-within:shadow-[0_0_30px_rgba(168,255,120,0.07)] transition-all">
-          <i data-lucide="terminal" class="text-text-3 ml-3 w-5 h-5"></i>
-          <input 
-            class="flex-1 bg-transparent border-none outline-none text-text font-mono py-3 placeholder-text-3"
-            placeholder="e.g. Move forward 10cm and rotate left..."
-            v-model="command"
-            @keydown.enter="executeCommand"
-            :disabled="loading"
-          />
-          <button 
-            @click="executeCommand"
-            :disabled="loading || !command.trim()"
-            class="bg-accent text-black px-6 py-3 rounded-xl font-semibold text-sm hover:shadow-[0_0_20px_rgba(168,255,120,0.2)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            <template v-if="loading">
-              <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
-            </template>
-            <template v-else>
-              Execute <i data-lucide="send" class="w-4 h-4"></i>
-            </template>
-          </button>
-        </div>
-
-        <!-- History -->
-        <div class="flex flex-col gap-4 mt-4">
-          <div class="flex justify-between items-center">
-            <span class="text-xs font-mono text-text-3 tracking-widest uppercase">Execution Log</span>
-            <button @click="clearHistory" class="text-xs font-mono text-text-3 hover:text-red-main transition-colors flex items-center gap-1">
-              <i data-lucide="trash-2" class="w-3 h-3"></i> Clear
-            </button>
-          </div>
-
-          <div class="flex flex-col gap-3">
-            <div v-if="history.length === 0" class="text-center py-10 border border-dashed border-border rounded-xl text-text-3 font-mono text-sm">
-              No commands yet.
-            </div>
-            
-            <div v-for="(item, idx) in history" :key="idx" class="glass-panel p-4 rounded-xl flex flex-col gap-3 transition-all">
-              <div class="flex justify-between items-start">
-                <span class="font-mono text-text text-sm">"{{ item.command }}"</span>
-                <span v-if="item.parsed && item.parsed.confidence" class="text-xs font-mono px-2 py-1 bg-surface-2 rounded text-accent border border-border">
-                  {{ Math.round(item.parsed.confidence * 100) }}% Conf
-                </span>
-              </div>
-              <div class="flex flex-wrap gap-2 font-mono text-xs text-text-3" v-if="item.parsed">
-                <span class="text-accent-2">ACT: {{ item.parsed.action }}</span>
-                <span v-if="item.parsed.direction">DIR: {{ item.parsed.direction }}</span>
-                <span v-if="item.parsed.distance_cm">DIST: {{ item.parsed.distance_cm }}cm</span>
-                <span v-if="item.parsed.angle_deg">ANG: {{ item.parsed.angle_deg }}&deg;</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Right Col -->
-      <div class="flex flex-col gap-4">
-        <!-- Status -->
-        <div class="glass-panel p-5 rounded-2xl flex flex-col gap-4">
-          <h3 class="text-xs font-mono text-text-3 tracking-widest uppercase flex items-center gap-2">
-            <i data-lucide="cpu" class="w-4 h-4"></i> Hardware Status
-          </h3>
-          
-          <div v-if="status" class="flex flex-col gap-3 font-mono text-sm text-text-2">
-            <div class="flex justify-between">
-              <span>Connection:</span>
-              <span :class="status.connected ? 'text-accent' : 'text-red-main'">
-                {{ status.connected ? "Active" : "Disconnected" }}
-              </span>
-            </div>
-            <div class="flex justify-between">
-              <span>Backend:</span>
-              <span class="text-text">{{ status.backend }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span>X Coord:</span>
-              <span class="text-accent-2">{{ status.position?.x?.toFixed(2) }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span>Y Coord:</span>
-              <span class="text-accent-2">{{ status.position?.y?.toFixed(2) }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span>Z Coord:</span>
-              <span class="text-accent-2">{{ status.position?.z?.toFixed(2) }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span>Gripper:</span>
-              <span class="text-text">{{ status.gripper_state }}</span>
-            </div>
-          </div>
-          <div v-else class="text-text-3 font-mono text-sm animate-pulse">Waiting for telemetry...</div>
+      <!-- HERO SECTION: Local Run Command -->
+      <section class="flex flex-col items-center text-center gap-8 mt-8">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-purple/30 bg-purple-dim text-purple text-xs font-mono font-bold tracking-widest uppercase">
+          <span class="w-2 h-2 rounded-full bg-purple animate-pulse"></span>
+          Bypass API Costs. Run Locally.
         </div>
         
-        <!-- SVG Vis -->
-        <div class="glass-panel p-5 rounded-2xl flex flex-col gap-4">
-           <h3 class="text-xs font-mono text-text-3 tracking-widest uppercase flex items-center gap-2">
-            <i data-lucide="info" class="w-4 h-4"></i> Workspace SVG
-          </h3>
-          <div class="aspect-square bg-surface border border-border rounded-xl flex items-center justify-center overflow-hidden p-2">
-            <img :src="backendUrl + '/api/visualize'" alt="Robot Workspace" class="w-full h-full object-contain filter invert opacity-80 mix-blend-screen" />
+        <h2 class="text-5xl md:text-7xl font-bold tracking-tighter leading-tight">
+          Initialize <br/>
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan via-white to-purple">The AI Robot Brain.</span>
+        </h2>
+        
+        <p class="text-text-muted text-lg max-w-2xl font-light">
+          OpenGuy is designed to run directly on your own hardware. Copy the terminal command below to deploy the neural interface locally, saving server costs and maximizing execution speed.
+        </p>
+
+        <!-- Terminal Snippet -->
+        <div class="w-full max-w-3xl glass-panel text-left overflow-hidden mt-4 border-cyan/30 shadow-neon-cyan">
+          <div class="bg-black/80 border-b border-border px-4 py-3 flex items-center justify-between">
+            <div class="flex gap-2">
+              <div class="w-3 h-3 rounded-full bg-danger/80"></div>
+              <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+              <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
+            </div>
+            <span class="text-xs font-mono text-text-muted">bash ~ local_deploy</span>
+            <button @click="copyCode" class="text-cyan hover:text-white transition-colors" title="Copy to clipboard">
+              <i v-if="copied" data-lucide="check" class="w-4 h-4"></i>
+              <i v-else data-lucide="copy" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <div class="p-6 overflow-x-auto bg-[#0a0a0c]">
+            <pre class="font-mono text-sm leading-loose"><code class="text-cyan">$ <span class="text-purple">git clone</span> https://github.com/OPENEHIRA/OpenGuy.git
+$ <span class="text-purple">cd</span> OpenGuy
+$ <span class="text-purple">pip install</span> -r requirements.txt
+$ <span class="text-purple">python</span> server.py</code></pre>
           </div>
         </div>
-      </div>
+      </section>
+
+      <!-- DIVIDER -->
+      <div class="w-full h-px bg-gradient-to-r from-transparent via-cyan/30 to-transparent my-8"></div>
+
+      <!-- DASHBOARD SECTION -->
+      <section class="flex flex-col gap-8">
+        <div class="flex flex-col md:flex-row justify-between items-end gap-6">
+          <div>
+            <h3 class="text-3xl font-bold tracking-tight">Remote Dashboard</h3>
+            <p class="text-text-muted mt-2">Connect this web interface to your locally running OpenGuy instance.</p>
+          </div>
+          
+          <!-- Connection Config -->
+          <div class="glass-panel p-2 pl-4 rounded-xl flex items-center gap-4">
+            <i data-lucide="radio" class="w-4 h-4 text-cyan"></i>
+            <input 
+              v-model="backendUrl" 
+              @change="connectSocket"
+              placeholder="http://localhost:5000"
+              class="bg-transparent border-none outline-none font-mono text-sm text-white w-56"
+            />
+            <div class="px-4 py-2 rounded-lg font-mono text-xs font-bold tracking-widest flex items-center gap-2"
+                 :class="isConnected ? 'bg-cyan-dim text-cyan border border-cyan/30 shadow-neon-cyan' : 'bg-danger/10 text-danger border border-danger/30'">
+              <div :class="['w-2 h-2 rounded-full', isConnected ? 'bg-cyan animate-pulse' : 'bg-danger']"></div>
+              {{ isConnected ? 'LINK ESTABLISHED' : 'DISCONNECTED' }}
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          <!-- Command Input & History -->
+          <div class="lg:col-span-2 flex flex-col gap-6">
+            
+            <div class="glass-panel p-2 pl-4 rounded-2xl flex items-center gap-4 focus-within:border-cyan focus-within:shadow-neon-cyan transition-all duration-300 relative overflow-hidden">
+              <div class="absolute inset-0 bg-gradient-to-r from-cyan/5 to-purple/5 pointer-events-none"></div>
+              <i data-lucide="terminal-square" class="text-cyan w-6 h-6 relative z-10"></i>
+              <input 
+                class="flex-1 bg-transparent border-none outline-none text-white font-mono py-4 relative z-10 placeholder-text-muted/50"
+                placeholder="Initiate command sequence (e.g., 'Move forward 10cm')..."
+                v-model="command"
+                @keydown.enter="executeCommand"
+                :disabled="loading"
+              />
+              <button 
+                @click="executeCommand"
+                :disabled="loading || !command.trim()"
+                class="btn-cyber px-8 py-4 rounded-xl font-bold text-sm disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                <template v-if="loading">
+                  <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Processing
+                </template>
+                <template v-else>
+                  Transmit <i data-lucide="send" class="w-4 h-4"></i>
+                </template>
+              </button>
+            </div>
+
+            <!-- Log -->
+            <div class="glass-panel p-6 flex flex-col gap-6 h-[500px] overflow-hidden flex-1">
+              <div class="flex justify-between items-center border-b border-border pb-4">
+                <span class="text-sm font-mono text-cyan tracking-widest uppercase flex items-center gap-2">
+                  <i data-lucide="activity" class="w-4 h-4"></i> Telemetry Log
+                </span>
+                <button @click="clearHistory" class="text-xs font-mono text-text-muted hover:text-danger transition-colors flex items-center gap-1">
+                  <i data-lucide="trash" class="w-3 h-3"></i> Purge
+                </button>
+              </div>
+
+              <div class="flex-1 overflow-y-auto pr-2 flex flex-col gap-4">
+                <div v-if="history.length === 0" class="h-full flex items-center justify-center flex-col gap-3 text-text-muted/50 font-mono">
+                  <i data-lucide="database" class="w-8 h-8 opacity-50"></i>
+                  No telemetry data found.
+                </div>
+                
+                <div v-for="(item, idx) in history" :key="idx" class="bg-black/40 border border-border/50 p-4 rounded-xl flex flex-col gap-3 hover:border-cyan/30 transition-colors">
+                  <div class="flex justify-between items-start">
+                    <span class="font-mono text-white">"{{ item.command }}"</span>
+                    <span v-if="item.parsed && item.parsed.confidence" class="text-xs font-mono px-2 py-1 bg-purple-dim text-purple border border-purple/30 rounded">
+                      {{ Math.round(item.parsed.confidence * 100) }}% Match
+                    </span>
+                  </div>
+                  <div class="flex flex-wrap gap-3 font-mono text-xs text-cyan" v-if="item.parsed">
+                    <span class="bg-cyan/10 px-2 py-1 rounded">ACT: {{ item.parsed.action }}</span>
+                    <span v-if="item.parsed.direction" class="bg-cyan/10 px-2 py-1 rounded">DIR: {{ item.parsed.direction }}</span>
+                    <span v-if="item.parsed.distance_cm" class="bg-cyan/10 px-2 py-1 rounded">DIST: {{ item.parsed.distance_cm }}cm</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Hardware Status & SVG -->
+          <div class="flex flex-col gap-6">
+            
+            <div class="glass-panel p-6 flex flex-col gap-6 relative overflow-hidden">
+              <div class="absolute top-0 right-0 w-32 h-32 bg-cyan/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+              
+              <h3 class="text-sm font-mono text-cyan tracking-widest uppercase border-b border-border pb-4 flex items-center gap-2">
+                <i data-lucide="hard-drive" class="w-4 h-4"></i> System Diagnostics
+              </h3>
+              
+              <div v-if="status" class="flex flex-col gap-4 font-mono text-sm">
+                <div class="flex justify-between items-center border-b border-white/5 pb-2">
+                  <span class="text-text-muted">Link Status</span>
+                  <span :class="status.connected ? 'text-cyan shadow-neon-cyan px-2 rounded' : 'text-danger'">
+                    {{ status.connected ? "SECURE" : "LOST" }}
+                  </span>
+                </div>
+                <div class="flex justify-between items-center border-b border-white/5 pb-2">
+                  <span class="text-text-muted">Backend</span>
+                  <span class="text-white">{{ status.backend }}</span>
+                </div>
+                <div class="flex justify-between items-center border-b border-white/5 pb-2">
+                  <span class="text-text-muted">Axis X</span>
+                  <span class="text-purple">{{ status.position?.x?.toFixed(2) }}</span>
+                </div>
+                <div class="flex justify-between items-center border-b border-white/5 pb-2">
+                  <span class="text-text-muted">Axis Y</span>
+                  <span class="text-purple">{{ status.position?.y?.toFixed(2) }}</span>
+                </div>
+                <div class="flex justify-between items-center border-b border-white/5 pb-2">
+                  <span class="text-text-muted">Axis Z</span>
+                  <span class="text-purple">{{ status.position?.z?.toFixed(2) }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-text-muted">Effector</span>
+                  <span class="text-white bg-white/10 px-2 rounded">{{ status.gripper_state }}</span>
+                </div>
+              </div>
+              <div v-else class="text-cyan font-mono text-sm animate-pulse flex items-center gap-2">
+                <i data-lucide="scan" class="w-4 h-4 animate-spin-slow"></i> Scanning network...
+              </div>
+            </div>
+            
+            <div class="glass-panel p-6 flex flex-col gap-4">
+               <h3 class="text-sm font-mono text-cyan tracking-widest uppercase border-b border-border pb-4 flex items-center gap-2">
+                <i data-lucide="radar" class="w-4 h-4"></i> Kinematic View
+              </h3>
+              <div class="aspect-square bg-black/50 border border-cyan/20 rounded-xl flex items-center justify-center overflow-hidden p-2 relative">
+                <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMCwgMjQzLCAyNTUsIDAuMikiLz48L3N2Zz4=')] pointer-events-none"></div>
+                <img :src="backendUrl + '/api/visualize'" alt="Robot Workspace" class="w-full h-full object-contain filter invert opacity-80 mix-blend-screen relative z-10" />
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
     </main>
   </div>
 
@@ -233,9 +371,8 @@
 
     createApp({
       setup() {
-        // Auto-detect if we're on Vercel vs local
         const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const defaultBackend = isLocal ? window.location.origin : 'http://localhost:5000'; // Default to localhost if hosted
+        const defaultBackend = isLocal ? window.location.origin : 'http://localhost:5000';
         
         const backendUrl = ref(defaultBackend);
         const command = ref('');
@@ -243,16 +380,24 @@
         const status = ref(null);
         const loading = ref(false);
         const isConnected = ref(false);
+        const copied = ref(false);
         let socket = null;
 
         const updateIcons = () => {
           nextTick(() => lucide.createIcons());
         };
 
+        const copyCode = () => {
+          const code = `git clone https://github.com/OPENEHIRA/OpenGuy.git\ncd OpenGuy\npip install -r requirements.txt\npython server.py`;
+          navigator.clipboard.writeText(code);
+          copied.value = true;
+          setTimeout(() => copied.value = false, 2000);
+        };
+
         const connectSocket = () => {
           if (socket) socket.disconnect();
           
-          let url = backendUrl.value.replace(/\/$/, ""); // trim trailing slash
+          let url = backendUrl.value.replace(/\/$/, "");
           
           try {
             socket = io(url);
@@ -284,7 +429,6 @@
           let url = backendUrl.value.replace(/\/$/, "");
           
           try {
-            // Parse
             const parseRes = await fetch(`${url}/api/parse`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -298,7 +442,6 @@
               throw new Error("Could not understand command");
             }
 
-            // Execute
             const execRes = await fetch(`${url}/api/execute`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -348,6 +491,8 @@
           status,
           loading,
           isConnected,
+          copied,
+          copyCode,
           executeCommand,
           clearHistory,
           connectSocket

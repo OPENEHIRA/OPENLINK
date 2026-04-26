@@ -1,4 +1,4 @@
-# OpenGuy / OpenClaw
+# OpenGuy
 
 OpenGuy is an AI-powered robotics interface that uses Natural Language to deterministically control hardware via Python.
 
